@@ -19,6 +19,8 @@ public class App {
                     Reform_Blueprint__c.class => ReformBlueprints.class
                 }
             );
+            // A user holding the custom permission Bypass_Triggers saves without triggers.
+            s.tf().disableWhen(new BypassTriggers());
         }
         return s;
     }}    

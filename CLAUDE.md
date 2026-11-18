@@ -20,7 +20,7 @@ Read the API file before writing framework code. Do not guess at method names, a
 
 ```
 force-app/main/default/
-  classes/            App (the entry point), Accounts, ExampleService, Scheme30/50/64
+  classes/            App (the entry point), Accounts, ExampleService, Scheme30/50/64, BypassTriggers (the trigger switch an administrator assigns)
   classes/reform/     Reform's server side and its tests
   classes/rollup/     Rollup's engine and its tests
   classes/clone/      Clone's engine and its tests
@@ -34,6 +34,7 @@ force-app/main/default/
   customMetadata/     The six sample rollup rules, the two steps of the sample clone plan, and the two
                       sample import formats with their columns
   triggers/           AccountTrigger, ReformBlueprintTrigger, RollupSampleChildTrigger, RollupSampleParentTrigger
+  customPermissions/  Bypass_Triggers, with a permission set of the same name
 ```
 
 ## Rules for subscriber code
@@ -45,6 +46,7 @@ These are all proven by code in this repository.
 - Query and domain classes are `global class`, with a `global` no-argument constructor. Hook overrides (`onBeforeUpsert`, `getDefaultFields`) can be `public override`.
 - Reach inherited behaviour through `base()`: `base().records()`, `base().getChangedRecords(...)`.
 - A trigger body is one line: `App.s.tf().execute();`
+- To switch triggers off for some users, give the application a rule: `App.s.tf().disableWhen(new BypassTriggers())`. The rule reads the custom permission `Bypass_Triggers`, so an administrator assigns a permission set and nothing is deployed (`BypassTriggersTest`). Keep the rule a class of this org, so that the permission it reads is this org's own.
 - Of the framework's exceptions only `inj.Application.FactoryException` and the utility classes' exceptions are global. Catch the others as `Exception`.
 - The framework's utility classes are in the package: `inj.RandomUtil`, `inj.FieldUtil`, `inj.IdUtil` and the rest. Do not copy them here.
 - A query made through the framework is run by the application's scheme. A scheme with a sharing keyword of its own decides whose records are seen; one without takes the sharing of the class that built the query (`GuideAccessTest`). `RollupScheme` is the example of a scheme declared `without sharing`.
