@@ -9,7 +9,7 @@ global class Accounts extends inj.BaseDomain implements IAccounts {
     }
 
     global List<Account> items(){
-        return (List<Account>)base().records();
+        return (List<Account>) records();
     }
     
     global override void onBeforeUpsert(Map<Id, SObject> oldMap) {

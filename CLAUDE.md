@@ -44,7 +44,7 @@ These are all proven by code in this repository.
 - Prefix every package type: `inj.IQuery`, `inj.BaseDomain`.
 - Registry keys are `Account.class`, not `Account.SObjectType`.
 - Query and domain classes are `global class`, with a `global` no-argument constructor. Hook overrides (`onBeforeUpsert`, `getDefaultFields`) can be `public override`.
-- Reach inherited behaviour through `base()`: `base().records()`, `base().getChangedRecords(...)`.
+- Call inherited behaviour directly: `records()`, `getChangedRecords(...)`. (`base()`, needed before package 0.3.0-2, still works.)
 - A trigger body is one line: `App.s.tf().execute();`
 - To switch triggers off for some users, give the application a rule: `App.s.tf().disableWhen(new BypassTriggers())`. The rule reads the custom permission `Bypass_Triggers`, so an administrator assigns a permission set and nothing is deployed (`BypassTriggersTest`). Keep the rule a class of this org, so that the permission it reads is this org's own.
 - Of the framework's exceptions only `inj.Application.FactoryException` and the utility classes' exceptions are global. Catch the others as `Exception`.

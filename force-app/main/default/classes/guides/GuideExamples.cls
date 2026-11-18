@@ -15,12 +15,12 @@ global class GuideExamples {
     }
 
     public AccountQuery inIndustry(String industry) {
-      base().addCondition(GuideApp.s.eq(Account.Industry, industry));
+      addCondition(GuideApp.s.eq(Account.Industry, industry));
       return this;
     }
 
     public AccountQuery overRevenue(Decimal floor) {
-      base().addCondition(GuideApp.s.gt(Account.AnnualRevenue, floor));
+      addCondition(GuideApp.s.gt(Account.AnnualRevenue, floor));
       return this;
     }
   }
@@ -31,13 +31,50 @@ global class GuideExamples {
     }
 
     global override void onInitialized(inj.IModel source) {
-      base().addCondition(GuideApp.s.eq(Case.IsClosed, false));
-      base().orderings().add(GuideApp.s.ordering(Case.CreatedDate, false, true));
+      addCondition(GuideApp.s.eq(Case.IsClosed, false));
+      orderings().add(GuideApp.s.ordering(Case.CreatedDate, false, true));
     }
   }
 
   /** Registered, but says nothing about its fields. */
   public class PlainContactQuery extends inj.BaseQuery {
+  }
+
+  /** Calls what it inherits directly, with no  */
+  global class DirectLeadQuery extends inj.BaseQuery {
+    global override void onInitialized(inj.IModel source) {
+      addCondition(GuideApp.s.eq(Lead.IsConverted, false));
+      orderings().add(GuideApp.s.ordering(Lead.CreatedDate, false, true));
+      setLimit(5);
+    }
+
+    public DirectLeadQuery fromSource(String leadSource) {
+      addCondition(GuideApp.s.eq(Lead.LeadSource, leadSource));
+      return this;
+    }
+  }
+
+  /** A domain that calls what it inherits directly, with no  */
+  global class DirectLeads extends inj.BaseDomain {
+    global DirectLeads() {
+      super();
+    }
+
+    public DirectLeads(List<Lead> rows) {
+      super(GuideApp.s.model(Lead.SObjectType), rows);
+    }
+
+    public List<Lead> items() {
+      return (List<Lead>) records();
+    }
+
+    public Integer howMany() {
+      return size();
+    }
+
+    public List<Lead> renamed(Map<Id, SObject> oldMap) {
+      return (List<Lead>) getChangedRecords(oldMap, new Set<SObjectField>{ Lead.LastName });
+    }
   }
 
   /** Can be created directly and copied, as well as by the factory. */
@@ -52,7 +89,7 @@ global class GuideExamples {
 
     global override void onInitialized(inj.IModel source) {
       GuideExamples.copyableHookRuns++;
-      base().addCondition(GuideApp.s.eq(Account.Type, 'Customer'));
+      addCondition(GuideApp.s.eq(Account.Type, 'Customer'));
     }
   }
 
@@ -69,7 +106,7 @@ global class GuideExamples {
     }
 
     public List<Opportunity> items() {
-      return (List<Opportunity>) base().records();
+      return (List<Opportunity>) records();
     }
 
     public override void onBeforeUpsert(Map<Id, SObject> oldMap) {
@@ -83,7 +120,7 @@ global class GuideExamples {
     public override void onAfterUpsert(Map<Id, SObject> oldMap) {
       Set<SObjectField> stage = new Set<SObjectField>{ Opportunity.StageName };
       inj.IWork work = GuideApp.s.work();
-      for (Opportunity row : (List<Opportunity>) base().getChangedRecords(oldMap, stage)) {
+      for (Opportunity row : (List<Opportunity>) getChangedRecords(oldMap, stage)) {
         if (row.StageName == 'Closed Won') {
           work.track(new Task(WhatId = row.Id, Subject = 'Send the welcome pack'));
         }

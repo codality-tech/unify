@@ -35,6 +35,26 @@ private class GuideExtensionTest {
   }
 
   @IsTest
+  static void inheritedMethodsCanBeCalledWithoutBase() {
+    inj.IApplication app = inj.Application.make(null, null, new Map<Type, Type>{ Lead.class => GuideExamples.DirectLeadQuery.class }, null);
+
+    inj.IQuery made = app.qf().make(Lead.SObjectType);
+    Assert.isTrue(made instanceof GuideExamples.DirectLeadQuery);
+    String soql = ((GuideExamples.DirectLeadQuery) made).fromSource('Web').toSoql();
+    Assert.isTrue(soql.contains('IsConverted = false'), soql);
+    Assert.isTrue(soql.contains('LeadSource = \'Web\''), soql);
+    Assert.isTrue(soql.contains('ORDER BY CreatedDate DESC'), soql);
+    Assert.isTrue(soql.contains('LIMIT 5'), soql);
+
+    Lead ada = new Lead(Id = inj.IdUtil.generateId(Lead.SObjectType), LastName = 'Lovelace', Company = 'Analytical');
+    GuideExamples.DirectLeads leads = new GuideExamples.DirectLeads(new List<Lead>{ ada });
+    Assert.areEqual(1, leads.howMany());
+    Assert.areEqual('Lovelace', leads.items()[0].LastName);
+    Lead before = new Lead(Id = ada.Id, LastName = 'Byron');
+    Assert.areEqual(1, leads.renamed(new Map<Id, SObject>{ ada.Id => before }).size());
+  }
+
+  @IsTest
   static void anObjectWithNothingRegisteredStillWorks() {
     Assert.isNotNull(GuideApp.s.qf().make(Contact.SObjectType));
     Assert.isNotNull(GuideApp.s.df().make(new List<Contact>{ new Contact(LastName = 'Ada') }));
@@ -55,12 +75,12 @@ private class GuideExtensionTest {
 
     Assert.areEqual(
       'SELECT Id, Name, Industry, AnnualRevenue FROM Account WHERE (Industry = :a0 AND AnnualRevenue > :a1)',
-      big.base().toSoql(true),
+      big.toSoql(true),
       'as run: values bound'
     );
     Assert.areEqual(
       'SELECT Id, Name, Industry, AnnualRevenue FROM Account WHERE (Industry = \'Energy\' AND AnnualRevenue > 1000000)',
-      big.base().toSoql(),
+      big.toSoql(),
       'for display: values inline'
     );
   }
@@ -74,7 +94,7 @@ private class GuideExtensionTest {
       new Account(Name = 'Big Retail', Industry = 'Retail', AnnualRevenue = 5000000)
     };
 
-    List<Account> rows = (List<Account>) bigEnergy().base().run();
+    List<Account> rows = (List<Account>) bigEnergy().run();
 
     Assert.areEqual(1, rows.size());
     Assert.areEqual('Big Energy', rows[0].Name);
@@ -109,22 +129,22 @@ private class GuideExtensionTest {
     GuideExamples.CopyableQuery direct = new GuideExamples.CopyableQuery();
 
     Assert.areEqual(1, GuideExamples.copyableHookRuns);
-    Assert.areEqual('SELECT Id FROM Account WHERE (Type = \'Customer\')', direct.base().toSoql(), 'Id, plus what the hook adds');
+    Assert.areEqual('SELECT Id FROM Account WHERE (Type = \'Customer\')', direct.toSoql(), 'Id, plus what the hook adds');
   }
 
   @IsTest
   static void aCopyCarriesTheOriginalsStateOnce() {
     GuideExamples.CopyableQuery original = new GuideExamples.CopyableQuery();
-    original.base().fields().add(new Set<SObjectField>{ Account.Name });
-    original.base().setLimit(5);
+    original.fields().add(new Set<SObjectField>{ Account.Name });
+    original.setLimit(5);
 
     GuideExamples.CopyableQuery copy = new GuideExamples.CopyableQuery(original);
 
     Assert.areEqual(2, GuideExamples.copyableHookRuns, 'the hook runs for the copy too; what it adds is then replaced by the state copied over');
-    Assert.areEqual(original.base().toSoql(), copy.base().toSoql());
-    Assert.areEqual(1, copy.base().toSoql().countMatches('Type ='), 'the hook\'s condition is there once, not twice');
-    copy.base().setLimit(9);
-    Assert.isTrue(original.base().toSoql().endsWith('LIMIT 5'), 'the copy is its own query');
+    Assert.areEqual(original.toSoql(), copy.toSoql());
+    Assert.areEqual(1, copy.toSoql().countMatches('Type ='), 'the hook\'s condition is there once, not twice');
+    copy.setLimit(9);
+    Assert.isTrue(original.toSoql().endsWith('LIMIT 5'), 'the copy is its own query');
   }
 
   @IsTest

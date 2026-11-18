@@ -16,7 +16,7 @@ global class ReformBlueprints extends inj.BaseDomain {
   public static Map<String, Reform_Blueprint__c> stored(Set<String> apiNames) {
     ReformBlueprintQuery wanted = ((ReformBlueprintQuery) App.s.qf().make(Reform_Blueprint__c.SObjectType)).named(apiNames);
     Map<String, Reform_Blueprint__c> byName = new Map<String, Reform_Blueprint__c>();
-    for (SObject row : wanted.base().run()) {
+    for (SObject row : wanted.run()) {
       Reform_Blueprint__c blueprint = (Reform_Blueprint__c) row;
       byName.put(blueprint.Api_Name__c.toLowerCase(), blueprint);
     }
@@ -26,7 +26,7 @@ global class ReformBlueprints extends inj.BaseDomain {
   /** What is wrong with each blueprint, by position; a blueprint with nothing wrong has no entry. */
   public Map<Integer, List<String>> problems() {
     Map<Integer, List<String>> found = new Map<Integer, List<String>>();
-    List<SObject> rows = base().records();
+    List<SObject> rows = records();
     for (Integer at = 0; at < rows.size(); at++) {
       List<String> wrong = problemsOf((Reform_Blueprint__c) rows[at]);
       if (!wrong.isEmpty()) {
@@ -45,7 +45,7 @@ global class ReformBlueprints extends inj.BaseDomain {
       Reform_Blueprint__c.Elements__c,
       Reform_Blueprint__c.Columns__c
     };
-    for (SObject changed : base().getChangedRecords(oldMap, defining)) {
+    for (SObject changed : getChangedRecords(oldMap, defining)) {
       List<String> wrong = problemsOf((Reform_Blueprint__c) changed);
       if (!wrong.isEmpty()) {
         changed.addError(String.join(wrong, '; '));
