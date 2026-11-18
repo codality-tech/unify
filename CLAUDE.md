@@ -41,6 +41,7 @@ force-app/main/default/
 
 These are all proven by code in this repository.
 
+- **Read and write through the framework.** Outside tests, every query is an `inj.IQuery` (or an aggregate query or a search) and every save is a unit of work: no `[SELECT ...]`, no `Database.query`, no bare `insert`/`update`/`delete`. An inline query never reaches the application's scheme, so sharing, user mode and `MockScheme` do not apply to it. The exceptions: tests (setting records up, checking what was saved), the scheme classes, and a query the framework cannot express (a semi-join today), with a comment saying so. Conditions and fields reach through lookups: `App.s.eq(new List<SObjectField>{ Contact.AccountId, Account.Industry }, 'Energy')`.
 - Prefix every package type: `inj.IQuery`, `inj.BaseDomain`.
 - Registry keys are `Account.class`, not `Account.SObjectType`.
 - Query and domain classes are `global class`, with a `global` no-argument constructor. Hook overrides (`onBeforeUpsert`, `getDefaultFields`) can be `public override`.

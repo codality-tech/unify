@@ -215,7 +215,7 @@ global class GuideExamples {
       for (Object each : scope) {
         marks.add(new Reform_Private_Sample__c(Name = (String) each));
       }
-      insert marks;
+      GuideApp.s.work().track(marks).apply();
     }
 
     public void batchFinish() {
