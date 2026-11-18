@@ -89,7 +89,7 @@ public class ClonePlan {
 
     private List<String> resolve() {
       List<String> wrong = new List<String>();
-      model = String.isBlank(step.objectName) ? null : App.s.model(step.objectName);
+      model = String.isBlank(step.objectName) ? null : Unify.s.model(step.objectName);
       if (model == null) {
         wrong.add('unknown object ' + step.objectName);
         return wrong;

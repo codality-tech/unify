@@ -10,8 +10,6 @@ private class CloneActionTest {
 
   @IsTest
   static void eachRequestGetsItsCopyInTheOrderAsked() {
-    App.s.tf().disable(new List<SObjectType>{ Account.SObjectType });
-    App.b.tf().disable();
     ClonePlans.use(
       new List<CloneStep>{
         new CloneStep('Firm').copying(Account.SObjectType).suffixed(' (copy)'),

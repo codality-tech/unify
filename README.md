@@ -2,6 +2,22 @@
 
 Solutions built with the Injectify framework. Each one is a working piece of an org, and together they are the framework's subscriber test: everything here compiles and runs against the installed package, through its public API only.
 
+The repository has two halves:
+
+- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. No version is built yet.
+- **`subscriber/` is an org's own side**, deployed as source and never packaged: the org's entry point (`App`), example classes, the tests that check the framework's guides, and the demo.
+
+Code in the examples below is written as it reads in this repository, without a prefix. In an org that installs the package, the solutions' names carry it: `unif.Cloner.copy(...)`, `unif.RollupHandler`, `unif__Rollup_Rule__mdt`.
+
+| Solution | What an org calls or uses |
+| --- | --- |
+| Reform | The components `reformPanel` and `reformShowcase`, and `Reform_Blueprint__c` records |
+| Rollup | `RollupHandler`, `Rollups.changed`, `Rollups.guardDelete`, `Rollups.recalculate`, `Rollups.sweep`, `RollupJobs.Nightly`, and `Rollup_Rule__mdt` records |
+| Clone | `Cloner.copy`, the flow action `CloneAction`, and `Clone_Step__mdt` records |
+| Import | `Importer.load`, `Importer.check`, `ImportResult`, the component `importPanel`, and `Import_Format__mdt` records with their columns |
+
+Those Apex names are `global`. Everything else in the package is its own business and can change.
+
 > **Status:** early. Reform is rebuilt on the current framework: server side and Lightning components, both tested. Rollup and Clone are new: server side only, tested. Import is new: server side and a Lightning component, both tested.
 
 ## Reform
@@ -110,7 +126,7 @@ new RollupRule('Open_Amount')
 
 ### Wiring an object
 
-A child object needs a trigger, and its body is the usual one line. With no domain class of its own, register `RollupHandler` for it in `App`:
+A child object needs a trigger, and its body is the usual one line. With no domain class of its own, register `RollupHandler` for it in the org's own entry point, `App`:
 
 ```apex
 trigger OpportunityTrigger on Opportunity(after insert, after update, after delete, after undelete) {
@@ -119,6 +135,8 @@ trigger OpportunityTrigger on Opportunity(after insert, after update, after dele
 
 new Map<Type, Type>{ Opportunity.class => RollupHandler.class } // in App's trigger registry
 ```
+
+The sample objects are wired the same way inside the package, on its own application (`Unify.s`), so they work as installed.
 
 An object that already has a domain class calls `Rollups.changed(this, oldMap)` from its after-save hook and `Rollups.changed(this, null)` from its after-delete and after-undelete hooks. A parent whose deletion is guarded needs a `before delete` trigger the same way.
 
@@ -439,7 +457,7 @@ Not tested: a file of tens of thousands of rows, the two download links (what th
 
 ## Demo
 
-`scripts/demo/` holds a demo that runs in the scratch org: a seed script, seven short anonymous Apex scripts (queries, conditions, the unit of work, partial success, Rollup, Clone, Import), a file to type into, and a runner that prints only what each script says. `Demo` (`classes/demo/`) is the helper they print with: a query as SOQL and its rows as a table, and what a piece of work cost in queries and statements. See [`scripts/demo/README.md`](scripts/demo/README.md).
+`scripts/demo/` holds a demo that runs in the scratch org: a seed script, seven short anonymous Apex scripts (queries, conditions, the unit of work, partial success, Rollup, Clone, Import), a file to type into, and a runner that prints only what each script says. `Demo` (`subscriber/.../classes/demo/`) is the helper they print with: a query as SOQL and its rows as a table, and what a piece of work cost in queries and statements. See [`scripts/demo/README.md`](scripts/demo/README.md).
 
 ```bash
 py scripts/demo/run.py seed
@@ -448,12 +466,14 @@ py scripts/demo/run.py 01
 
 ## Working on it
 
-The package must be installed in the org first. Then:
+The Injectify package must be installed in the org first. Then both halves are deployed as source, to an org without a namespace:
 
 ```bash
-sf project deploy start -d force-app --ignore-conflicts
+sf project deploy start -d force-app -d subscriber --ignore-conflicts
 sf apex test run -l RunLocalTests -c
 ```
+
+The package is built from `force-app/` alone, so nothing in it may name a class in `subscriber/`. The solutions reach the framework through `Unify.s`; the org's own code reaches it through `App.s`. The tests in `force-app/` cover the package by themselves.
 
 The components have unit tests of their own, which need no org:
 

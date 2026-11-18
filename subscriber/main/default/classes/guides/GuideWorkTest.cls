@@ -12,7 +12,7 @@ private class GuideWorkTest {
 
   // The sample objects have rollup triggers; these tests count their own statements.
   private static void quietSampleTriggers() {
-    App.s.tf().disable(new List<SObjectType>{ Rollup_Sample_Parent__c.SObjectType, Rollup_Sample_Child__c.SObjectType });
+    Unify.s.tf().disable(new List<SObjectType>{ Rollup_Sample_Parent__c.SObjectType, Rollup_Sample_Child__c.SObjectType });
   }
 
   private static Reform_Blueprint__c blueprint(String key, String label) {

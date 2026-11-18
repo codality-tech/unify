@@ -9,12 +9,12 @@ global class ReformBlueprints extends inj.BaseDomain {
   }
 
   public ReformBlueprints(List<Reform_Blueprint__c> records) {
-    super(App.s.model(Reform_Blueprint__c.SObjectType), records);
+    super(Unify.s.model(Reform_Blueprint__c.SObjectType), records);
   }
 
   /** The stored blueprints with these API names, keyed by API name in lower case. */
   public static Map<String, Reform_Blueprint__c> stored(Set<String> apiNames) {
-    ReformBlueprintQuery wanted = ((ReformBlueprintQuery) App.s.qf().make(Reform_Blueprint__c.SObjectType)).named(apiNames);
+    ReformBlueprintQuery wanted = ((ReformBlueprintQuery) Unify.s.qf().make(Reform_Blueprint__c.SObjectType)).named(apiNames);
     Map<String, Reform_Blueprint__c> byName = new Map<String, Reform_Blueprint__c>();
     for (SObject row : wanted.run()) {
       Reform_Blueprint__c blueprint = (Reform_Blueprint__c) row;

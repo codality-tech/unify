@@ -14,12 +14,6 @@ private class ClonerTest {
     };
   }
 
-  // The example triggers on Account do work of their own; these tests are not about them.
-  private static void quietAccountTriggers() {
-    App.s.tf().disable(new List<SObjectType>{ Account.SObjectType });
-    App.b.tf().disable();
-  }
-
   private static Account firmWithEverything(String name) {
     Account firm = new Account(Name = name, Industry = 'Energy', AnnualRevenue = 5000);
     insert firm;
@@ -45,7 +39,6 @@ private class ClonerTest {
 
   @IsTest
   static void aRecordIsCopiedWithWhatIsBeneathIt() {
-    quietAccountTriggers();
     ClonePlans.use(accountPlan());
     Account firm = firmWithEverything('Acme');
 
@@ -82,7 +75,6 @@ private class ClonerTest {
 
   @IsTest
   static void aStepFiltersLeavesOutAndSetsValues() {
-    quietAccountTriggers();
     ClonePlans.use(
       new List<CloneStep>{
         new CloneStep('Firm')
@@ -116,7 +108,6 @@ private class ClonerTest {
 
   @IsTest
   static void manyRecordsCostOneQueryForEachStep() {
-    quietAccountTriggers();
     ClonePlans.use(accountPlan());
     Account first = firmWithEverything('Acme');
     Account second = firmWithEverything('Initech');
@@ -135,7 +126,6 @@ private class ClonerTest {
 
   @IsTest
   static void aLongNameMakesRoomForItsSuffix() {
-    quietAccountTriggers();
     ClonePlans.use(accountPlan());
     Account firm = new Account(Name = 'N'.repeat(255));
     insert firm;
@@ -209,7 +199,6 @@ private class ClonerTest {
 
   @IsTest
   static void theCopyHoldsWhatTheUserCanReadAndBelongsToThem() {
-    quietAccountTriggers();
     ClonePlans.use(accountPlan());
     // Accounts with their Industry, but not their AnnualRevenue; no contacts or opportunities at all.
     User copier = userWith(
@@ -235,7 +224,6 @@ private class ClonerTest {
 
   @IsTest
   static void theOwnerIsWhoeverCopiesNotWhoeverOwnedTheOriginal() {
-    quietAccountTriggers();
     ClonePlans.use(accountPlan());
     User other = userWith(new List<ObjectPermissions>{ new ObjectPermissions(SobjectType = 'Account', PermissionsRead = true) }, new List<String>());
     Account firm = new Account(Name = 'Acme', OwnerId = other.Id);
@@ -248,7 +236,6 @@ private class ClonerTest {
 
   @IsTest
   static void anObjectTheUserMayNotCreateStopsTheCopy() {
-    quietAccountTriggers();
     ClonePlans.use(accountPlan());
     User reader = userWith(
       new List<ObjectPermissions>{

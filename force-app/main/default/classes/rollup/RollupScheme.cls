@@ -5,7 +5,7 @@
  * keyword of its own settles the matter; one without takes the sharing of whoever built the query
  * (GuideAccessTest shows both). A total must cover every child whoever is saving and whichever
  * class happens to call, so the rollup has an application of its own, on a scheme declared WITHOUT
- * SHARING, and leaves App.s, with whatever scheme the rest of the org chose, alone.
+ * SHARING, and leaves the solutions' own application (Unify.s) and the org's, with their schemes, alone.
  */
 public without sharing class RollupScheme implements inj.IScheme {
   /** Everything the rollup reads or writes goes through this. */

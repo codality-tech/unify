@@ -12,6 +12,9 @@
           "package": "Injectify@0.3.0-2"
         }
       ]
+    },
+    {
+      "path": "subscriber"
     }
   ],
   "namespace": "unif",

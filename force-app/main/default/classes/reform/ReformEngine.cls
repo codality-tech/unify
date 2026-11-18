@@ -105,7 +105,7 @@ public with sharing class ReformEngine {
     }
     inj.IQuery one = model.query();
     one.fields().add(visibleFields);
-    one.addCondition(App.s.condId(new Set<Id>{ recordId }));
+    one.addCondition(Unify.s.condId(new Set<Id>{ recordId }));
     SObject found = one.withSharing(true).fetch();
     if (found == null) {
       throw new ReformException('That ' + plan.label + ' does not exist, or you cannot see it');
@@ -149,9 +149,9 @@ public with sharing class ReformEngine {
       readsByType.get(parentType).addAll(reads);
     }
     for (SObjectType parentType : idsByType.keySet()) {
-      inj.IQuery parents = App.s.model(parentType).query();
+      inj.IQuery parents = Unify.s.model(parentType).query();
       parents.fields().add(readsByType.get(parentType));
-      parents.addCondition(App.s.condId(idsByType.get(parentType)));
+      parents.addCondition(Unify.s.condId(idsByType.get(parentType)));
       Map<Id, SObject> byId = new Map<Id, SObject>(parents.withSharing(true).run());
       for (SObjectField lookup : typeByLookup.keySet()) {
         SObject parent = typeByLookup.get(lookup) == parentType ? byId.get((Id) working.get(lookup)) : null;
@@ -208,7 +208,7 @@ public with sharing class ReformEngine {
     if (!editing && plan.recordTypeId != null) {
       outgoing.put('RecordTypeId', plan.recordTypeId);
     }
-    App.s.work().withSharing(true).track(outgoing).apply();
+    Unify.s.work().withSharing(true).track(outgoing).apply();
     return outgoing.Id;
   }
 
@@ -383,10 +383,10 @@ public with sharing class ReformEngine {
       listed.addCondition(condition);
     }
     if (sortBy != null) {
-      listed.orderings().add(App.s.ordering(sortBy, true, true));
+      listed.orderings().add(Unify.s.ordering(sortBy, true, true));
     }
     // Id last, so pages do not shuffle records that sort alike.
-    listed.orderings().add(App.s.ordering('Id', true, false));
+    listed.orderings().add(Unify.s.ordering('Id', true, false));
     listed.withSharing(true).setLimit(shown.pageSize).setOffset(shown.skip);
 
     shown.total = listed.count();
@@ -414,6 +414,6 @@ public with sharing class ReformEngine {
     if (!access(recordId).HasDeleteAccess) {
       throw new ReformException('You cannot delete this ' + plan.label);
     }
-    App.s.work().withSharing(true).purge(model.token().newSObject(recordId)).apply();
+    Unify.s.work().withSharing(true).purge(model.token().newSObject(recordId)).apply();
   }
 }

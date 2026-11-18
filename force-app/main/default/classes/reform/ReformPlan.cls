@@ -130,7 +130,7 @@ public with sharing class ReformPlan {
       problems.add('A blueprint needs an object (sobjectName)');
       return;
     }
-    model = App.s.model(definition.objectName);
+    model = Unify.s.model(definition.objectName);
     if (model == null) {
       problems.add('There is no object named ' + definition.objectName);
       return;
@@ -307,11 +307,11 @@ public with sharing class ReformPlan {
     }
     for (Part part : parts) {
       if (part.usable() && part.isFixed) {
-        rowConditions.add(App.s.eq(part.field, part.fixedValue));
+        rowConditions.add(Unify.s.eq(part.field, part.fixedValue));
       }
     }
     if (recordTypeId != null) {
-      rowConditions.add(App.s.eq('RecordTypeId', recordTypeId));
+      rowConditions.add(Unify.s.eq('RecordTypeId', recordTypeId));
     }
   }
 
@@ -352,7 +352,7 @@ public with sharing class ReformPlan {
         if (!parentPaths.containsKey(lookup)) {
           parentPaths.put(lookup, new Set<inj.IPath>());
         }
-        parentPaths.get(lookup).add(App.s.path(steps));
+        parentPaths.get(lookup).add(Unify.s.path(steps));
       }
     }
   }

@@ -12,19 +12,19 @@
  * What a copy costs, however many records are copied: one query for each step of the plan, and one
  * unit of work, which saves each object once, parents before the records that point at them.
  */
-public with sharing class Cloner {
-  public class CloneException extends Exception {
+global with sharing class Cloner {
+  global class CloneException extends Exception {
   }
 
   /** Copies one record; returns the Id of its copy. */
-  public static Id copy(String planName, Id recordId) {
+  global static Id copy(String planName, Id recordId) {
     return copy(planName, new Set<Id>{ recordId }).get(recordId);
   }
 
   /** Copies several records of the plan's object; returns the Id of each one's copy, by the original's Id. */
-  public static Map<Id, Id> copy(String planName, Set<Id> recordIds) {
+  global static Map<Id, Id> copy(String planName, Set<Id> recordIds) {
     ClonePlan plan = ClonePlans.named(planName);
-    inj.IWork work = App.s.work().withSharing(true);
+    inj.IWork work = Unify.s.work().withSharing(true);
     work.options().DuplicateRuleHeader.allowSave = true;
 
     Map<Id, SObject> copies = copyLevel(plan.root, recordIds, null, work);
@@ -60,10 +60,10 @@ public with sharing class Cloner {
     inj.IQuery reading = node.model.query().withSharing(true);
     reading.fields().add(node.copiedFields());
     if (node.lookup == null) {
-      reading.addCondition(App.s.condId(ids));
+      reading.addCondition(Unify.s.condId(ids));
     } else {
       reading.fields().add(new Set<SObjectField>{ node.lookup });
-      reading.addCondition(App.s.iin(node.lookup, ids));
+      reading.addCondition(Unify.s.iin(node.lookup, ids));
     }
     if (node.filter != null) {
       reading.addCondition(node.filter.clone(true));

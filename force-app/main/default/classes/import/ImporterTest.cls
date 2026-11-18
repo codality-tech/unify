@@ -19,12 +19,6 @@ private class ImporterTest {
       .constant(Contact.LeadSource, 'Other');
   }
 
-  // The example triggers on Account do work of their own; these tests are not about them.
-  private static void quietAccountTriggers() {
-    App.s.tf().disable(new List<SObjectType>{ Account.SObjectType });
-    App.b.tf().disable();
-  }
-
   // Saved past the org's duplicate rules, for the tests that need two records alike.
   private static void insertAlike(List<SObject> records) {
     Database.DMLOptions options = new Database.DMLOptions();
@@ -51,7 +45,6 @@ private class ImporterTest {
 
   @IsTest
   static void rowsBecomeNewRecordsOrChangeTheOnesTheyMatch() {
-    quietAccountTriggers();
     ImportFormats.use(new List<ImportFormat>{ people() });
     Account acme = new Account(Name = 'Acme');
     insert new List<Account>{ acme, new Account(Name = 'Globex') };
@@ -100,7 +93,6 @@ private class ImporterTest {
 
   @IsTest
   static void aRowThatCannotBeSavedFailsAloneAndSaysWhy() {
-    quietAccountTriggers();
     ImportFormats.use(new List<ImportFormat>{ people() });
     insertAlike(new List<Account>{ new Account(Name = 'Twin'), new Account(Name = 'Twin') });
     String accountName = Account.Name.getDescribe().getLabel();
@@ -284,7 +276,6 @@ private class ImporterTest {
 
   @IsTest
   static void aFormatWithNoColumnsReadsTheFileByItsHeaders() {
-    quietAccountTriggers();
     ImportFormats.use(new List<ImportFormat>{ new ImportFormat('Firms').into(Account.SObjectType) });
     insert new Account(Name = 'Acme');
     String revenue = Account.AnnualRevenue.getDescribe().getLabel();
@@ -322,7 +313,6 @@ private class ImporterTest {
 
   @IsTest
   static void twoHundredRowsCostTwoQueriesAndTwoSaves() {
-    quietAccountTriggers();
     ImportFormats.use(new List<ImportFormat>{ people() });
     insert new Account(Name = 'Acme');
     List<Contact> existing = new List<Contact>();

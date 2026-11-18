@@ -118,7 +118,7 @@ public class ImportPlan {
   // Resolving the format
 
   private void resolve() {
-    model = String.isBlank(format.objectName) ? null : App.s.model(format.objectName);
+    model = String.isBlank(format.objectName) ? null : Unify.s.model(format.objectName);
     if (model == null) {
       problems.add('unknown object ' + format.objectName);
       return;
@@ -211,7 +211,7 @@ public class ImportPlan {
     } else if (targets.size() > 1) {
       wrong.add(slot.shape.getName() + ' can point at more than one object, so its cells must hold Ids');
     } else {
-      inj.IModel target = App.s.model(targets[0]);
+      inj.IModel target = Unify.s.model(targets[0]);
       SObjectField finder = target.fieldMap().get(relatedField);
       if (finder == null) {
         wrong.add('unknown field ' + target.name() + '.' + relatedField);

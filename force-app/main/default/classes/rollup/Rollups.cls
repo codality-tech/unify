@@ -15,8 +15,8 @@
  * Reads go through RollupScheme, which runs them without sharing whoever calls; writes go through
  * a unit of work in system mode, which takes its sharing from this class.
  */
-public without sharing class Rollups {
-  public class RollupException extends Exception {
+global without sharing class Rollups {
+  global class RollupException extends Exception {
   }
 
   // The queries a transaction keeps back for everything else. When a recalculation would leave
@@ -35,7 +35,7 @@ public without sharing class Rollups {
    * Call after child records are inserted, updated, deleted or undeleted. `previous` is their
    * earlier state on update, and null otherwise.
    */
-  public static void changed(inj.IDomain children, Map<Id, SObject> previous) {
+  global static void changed(inj.IDomain children, Map<Id, SObject> previous) {
     Map<String, Set<Id>> now = new Map<String, Set<Id>>();
     Map<String, Set<Id>> later = new Map<String, Set<Id>>();
     for (RollupPlan plan : RollupRules.forChild(children.source().token())) {
@@ -55,7 +55,7 @@ public without sharing class Rollups {
   }
 
   /** Recalculates every active rule that writes to these records, now. */
-  public static void recalculate(Set<Id> parentIds) {
+  global static void recalculate(Set<Id> parentIds) {
     Map<SObjectType, Set<Id>> idsByType = new Map<SObjectType, Set<Id>>();
     for (Id parentId : parentIds) {
       SObjectType parentType = parentId.getSObjectType();
@@ -74,7 +74,7 @@ public without sharing class Rollups {
   }
 
   /** Recalculates the named rules for the parents given with each, now. An unknown rule is ignored. */
-  public static void recalculate(Map<String, Set<Id>> parentsByRule) {
+  global static void recalculate(Map<String, Set<Id>> parentsByRule) {
     new Calculation(parentsByRule).run();
   }
 
@@ -83,7 +83,7 @@ public without sharing class Rollups {
    * another. Use it after adding a rule, or on a schedule to correct what no trigger saw (merged
    * records, data loaded with triggers off). Returns the first job, or null when there are no rules.
    */
-  public static inj.IJob sweep() {
+  global static inj.IJob sweep() {
     inj.IJob first;
     for (String parentObject : RollupRules.parentObjects()) {
       inj.IJob next = inj.Async.queryable(new RollupJobs.Sweep(parentObject));
@@ -96,7 +96,7 @@ public without sharing class Rollups {
    * Call before parent records are deleted. A rule that guards deletion refuses the delete while
    * the parent holds a result above zero (or, for dates and text, any result).
    */
-  public static void guardDelete(inj.IDomain parents) {
+  global static void guardDelete(inj.IDomain parents) {
     for (RollupPlan plan : RollupRules.forParent(parents.source().token())) {
       if (plan.rule.guardsDelete != true) {
         continue;

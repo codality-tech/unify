@@ -63,8 +63,6 @@ private class ReformAccessTest {
   }
 
   private static Account acme() {
-    App.s.tf().disable(new List<SObjectType>{ Account.SObjectType });
-    App.b.tf().disable();
     Account made = new Account(Name = 'Acme', Industry = 'Energy', Rating = 'Hot', AnnualRevenue = 5000000);
     insert made;
     return made;

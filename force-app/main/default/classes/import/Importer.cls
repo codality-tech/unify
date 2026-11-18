@@ -15,25 +15,25 @@
  * What it costs, however many rows: one query for each column that finds a related record, one to
  * match the rows against existing records, one insert and one update.
  */
-public with sharing class Importer {
-  public class ImportException extends Exception {
+global with sharing class Importer {
+  global class ImportException extends Exception {
   }
 
   /** The column of a failures file that says why each row failed. */
-  public static final String ERROR_COLUMN = 'Error';
+  global static final String ERROR_COLUMN = 'Error';
 
   /** A cell holding this empties its field. An empty cell leaves the field alone. */
-  public static final String CLEAR = '#N/A';
+  global static final String CLEAR = '#N/A';
 
   /** Tests lower this to see a file too large for one transaction refused. */
   @TestVisible
   private static Integer rowsPerTransaction;
 
-  public static ImportResult load(String formatName, String csvText) {
+  global static ImportResult load(String formatName, String csvText) {
     return run(formatName, csvText, 0, true);
   }
 
-  public static ImportResult check(String formatName, String csvText) {
+  global static ImportResult check(String formatName, String csvText) {
     return run(formatName, csvText, 0, false);
   }
 
@@ -200,7 +200,7 @@ public with sharing class Importer {
     private Map<String, List<Id>> idsByValue(inj.IModel model, SObjectField field, Set<String> values) {
       inj.IQuery reading = model.query().withSharing(true);
       reading.fields().add(new Set<SObjectField>{ model.fieldMap().get('Id'), field });
-      reading.addCondition(App.s.iin(field, values));
+      reading.addCondition(Unify.s.iin(field, values));
       Map<String, List<Id>> found = new Map<String, List<Id>>();
       for (SObject record : reading.run()) {
         String key = String.valueOf(record.get(field)).toLowerCase();
@@ -338,7 +338,7 @@ public with sharing class Importer {
       Savepoint before = whole ? Database.setSavepoint() : null;
       // The framework's unit of work, as the person and with partial success: it inserts the new
       // records in one statement, updates the others in one, and says which it could not save.
-      inj.IWork work = App.s.work().withSharing(true);
+      inj.IWork work = Unify.s.work().withSharing(true);
       work.options().optAllOrNone = false;
       for (Entry entry : good) {
         work.track(entry.record);

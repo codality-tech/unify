@@ -1,4 +1,7 @@
 public class App {
+    // The example triggers on Account run in a test only when the test asks for them.
+    public static Boolean examplesInTests = false;
+
     public static inj.IApplication s{private set; get{
         if (s == null){
             s = inj.Application.make(

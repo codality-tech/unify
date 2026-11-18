@@ -147,7 +147,7 @@ private class ReformSharingTest {
 
   private static String rename(Id recordId, Boolean asUser) {
     try {
-      App.s.work().withSharing(asUser).track(new Reform_Private_Sample__c(Id = recordId, Name = 'Forced')).apply();
+      Unify.s.work().withSharing(asUser).track(new Reform_Private_Sample__c(Id = recordId, Name = 'Forced')).apply();
     } catch (Exception refused) {
       return refused.getTypeName() + ': ' + refused.getMessage().substringAfter('first error: ').substringBefore(',');
     }

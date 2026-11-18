@@ -239,16 +239,17 @@ private class GuideExtensionTest {
 
   @IsTest
   static void switchingTriggersOffCounts() {
-    // A blueprint for an object that does not exist is refused by its trigger (ReformBlueprints).
+    // A blueprint for an object that does not exist is refused by its trigger (ReformBlueprints),
+    // which runs on the application the solutions share: Unify.s.
     Reform_Blueprint__c mistaken = new Reform_Blueprint__c(Name = 'Mistaken', Api_Name__c = 'mistaken', Sobject_Name__c = 'No_Such_Object__c');
 
-    App.s.tf().disable();
-    App.s.tf().disable();
-    App.s.tf().enable();
+    Unify.s.tf().disable();
+    Unify.s.tf().disable();
+    Unify.s.tf().enable();
     insert mistaken;
     Assert.isNotNull(mistaken.Id, 'still off: disabled twice, enabled once');
 
-    App.s.tf().enable();
+    Unify.s.tf().enable();
     mistaken.Naming_Field__c = 'Name';
     try {
       update mistaken;
@@ -258,14 +259,14 @@ private class GuideExtensionTest {
     }
 
     List<SObjectType> oneObject = new List<SObjectType>{ Reform_Blueprint__c.SObjectType };
-    App.s.tf().disable(oneObject);
+    Unify.s.tf().disable(oneObject);
     update mistaken;
-    App.s.tf().enable(oneObject);
+    Unify.s.tf().enable(oneObject);
 
     Map<SObjectType, Set<TriggerOperation>> oneOperation = new Map<SObjectType, Set<TriggerOperation>>{
       Reform_Blueprint__c.SObjectType => new Set<TriggerOperation>{ TriggerOperation.BEFORE_UPDATE }
     };
-    App.s.tf().disable(oneOperation);
+    Unify.s.tf().disable(oneOperation);
     mistaken.Naming_Field__c = 'Id';
     update mistaken;
     try {
@@ -274,7 +275,7 @@ private class GuideExtensionTest {
     } catch (DmlException refused) {
       Assert.isTrue(refused.getMessage().contains('No_Such_Object__c'), refused.getMessage());
     }
-    App.s.tf().enable(oneOperation);
+    Unify.s.tf().enable(oneOperation);
   }
 
   // Services

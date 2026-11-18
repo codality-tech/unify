@@ -2,7 +2,7 @@
  * The rollup's jobs, as handlers for the framework's async engine. They hold names and Ids only,
  * so they travel between transactions as they are.
  */
-public class RollupJobs {
+global class RollupJobs {
   /** Recalculates the named rules for the parents given with each, in a transaction of its own. */
   public class Recalculate implements inj.IQueueableHandler {
     private Map<String, Set<Id>> parentsByRule;
@@ -47,16 +47,19 @@ public class RollupJobs {
   /**
    * Sweeps every night at two. To schedule it: inj.Async.schedulable(new RollupJobs.Nightly()).run();
    */
-  public class Nightly implements inj.ISchedulableHandler {
-    public void schedulableExecute() {
+  global class Nightly implements inj.ISchedulableHandler {
+    global Nightly() {
+    }
+
+    global void schedulableExecute() {
       Rollups.sweep();
     }
 
-    public String name() {
+    global String name() {
       return 'Rollup sweep';
     }
 
-    public String cronExpression() {
+    global String cronExpression() {
       return '0 0 2 * * ?';
     }
   }

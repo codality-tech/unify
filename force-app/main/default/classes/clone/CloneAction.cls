@@ -2,18 +2,18 @@
  * The copy as an action a flow can call, so an admin can put "Copy with related records" on a
  * button without code. Requests that name the same plan are copied together.
  */
-public with sharing class CloneAction {
-  public class Request {
+global with sharing class CloneAction {
+  global class Request {
     @InvocableVariable(label='Plan' description='The name of the Clone Step that starts the plan' required=true)
-    public String plan;
+    global String plan;
 
     @InvocableVariable(label='Record Id' description='The record to copy' required=true)
-    public Id recordId;
+    global Id recordId;
   }
 
-  public class Result {
+  global class Result {
     @InvocableVariable(label='Copy Id' description='The Id of the copy')
-    public Id copyId;
+    global Id copyId;
   }
 
   @InvocableMethod(
@@ -21,7 +21,7 @@ public with sharing class CloneAction {
     description='Copies a record and the records beneath it, as a Clone Step plan describes. Returns the Id of the copy.'
     category='Clone'
   )
-  public static List<Result> copy(List<Request> requests) {
+  global static List<Result> copy(List<Request> requests) {
     Map<String, Set<Id>> idsByPlan = new Map<String, Set<Id>>();
     for (Request asked : requests) {
       if (!idsByPlan.containsKey(asked.plan)) {

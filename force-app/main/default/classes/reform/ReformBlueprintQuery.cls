@@ -22,7 +22,7 @@ global class ReformBlueprintQuery extends inj.BaseQuery {
 
   /** Only the blueprints with these API names. */
   public ReformBlueprintQuery named(Set<String> apiNames) {
-    addCondition(App.s.iin(Reform_Blueprint__c.Api_Name__c, apiNames));
+    addCondition(Unify.s.iin(Reform_Blueprint__c.Api_Name__c, apiNames));
     return this;
   }
 }

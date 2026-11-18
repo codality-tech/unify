@@ -8,6 +8,8 @@ Guidance for Claude Code when working in this repository.
 
 The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `inj`.
 
+The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; no version built yet). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
+
 | Need | Where |
 | --- | --- |
 | Every global type and method signature | `../injectify/docs/documentation/package_api.apex` |
@@ -19,23 +21,37 @@ Read the API file before writing framework code. Do not guess at method names, a
 ## Layout
 
 ```
-force-app/main/default/
-  classes/            App (the entry point), Accounts, ExampleService, Scheme30/50/64, BypassTriggers (the trigger switch an administrator assigns)
+force-app/main/default/     THE PACKAGE
+  classes/            Unify (the application the solutions run on)
   classes/reform/     Reform's server side and its tests
   classes/rollup/     Rollup's engine and its tests
   classes/clone/      Clone's engine and its tests
   classes/import/     Import's engine and its tests
-  classes/guides/     Tests that run the statements the framework's guides make
-  classes/demo/       Demo, the print helper the demo scripts use
   lwc/                reformEntry, reformList, reformPanel, reformShowcase, importPanel (each with __tests__)
   objects/            Reform_Blueprint__c; Reform_Private_Sample__c (privately shared, for tests);
                       Rollup_Rule__mdt; Rollup_Sample_Parent__c and Rollup_Sample_Child__c; Clone_Step__mdt;
                       Import_Format__mdt and Import_Column__mdt
   customMetadata/     The six sample rollup rules, the two steps of the sample clone plan, and the two
                       sample import formats with their columns
-  triggers/           AccountTrigger, ReformBlueprintTrigger, RollupSampleChildTrigger, RollupSampleParentTrigger
+  triggers/           ReformBlueprintTrigger, RollupSampleChildTrigger, RollupSampleParentTrigger
+  permissionsets/     Import, Reform_Showcase, Rollup_Sample
+
+subscriber/main/default/    AN ORG'S OWN SIDE (source only)
+  classes/            App (the org's entry point), Accounts, ExampleService, Scheme30/50/64,
+                      BypassTriggers (the trigger switch an administrator assigns)
+  classes/guides/     Tests that run the statements the framework's guides make
+  classes/demo/       Demo, the print helper the demo scripts use
+  triggers/           AccountTrigger
   customPermissions/  Bypass_Triggers, with a permission set of the same name
 ```
+
+## Rules for the package
+
+- **Nothing in `force-app/` names a class in `subscriber/`.** The package is built from `force-app/` alone. The solutions reach the framework through `Unify.s`, never `App.s`.
+- **`global` is the promise.** An org calls only what the README's table lists: `RollupHandler`, `Rollups` (`changed`, `guardDelete`, `recalculate`, `sweep`), `RollupJobs.Nightly`, `Cloner.copy`, `CloneAction`, `Importer` (`load`, `check`), `ImportResult`. Add a `global` when an org needs one; do not widen a class because it is convenient. `ReformBlueprints`, `ReformBlueprintQuery` and `RollupHandler` are `global` because the framework has to construct them.
+- The package's own objects are wired in `Unify`: the blueprint's query and domain classes, and `RollupHandler` for the two sample objects. Their triggers call `Unify.s.tf().execute()`.
+- The tests in `force-app/` must cover the package without help from `subscriber/`. They cannot switch off an org's triggers, so the example triggers on Account stay out of every test unless it sets `App.examplesInTests`.
+- A sample object's trigger runs on `Unify.s`. A test in `subscriber/` that wants it off, or wants the org's bypass rule to apply to it, says so to `Unify.s.tf()` (`GuideWorkTest`, `BypassTriggersTest`).
 
 ## Rules for subscriber code
 
@@ -57,7 +73,7 @@ These are all proven by code in this repository.
 - CSV text is read with `inj.CsvUtil.read`, and text becomes a field's value with `inj.FieldUtil.fromText`. Do not write either here.
 - A custom metadata relationship field (`Import_Column__mdt.Format__c`) holds the Id of the record it points at when read with `getAll()`.
 
-`App.cls` shows the registries:
+`App.cls` (in `subscriber/`) shows the registries:
 
 ```apex
 s = inj.Application.make(
@@ -87,7 +103,7 @@ The package must be installed in the org first. The version to install is the ne
 
 ```bash
 sf package install --package <04t id> --target-org s-unify --wait 20
-sf project deploy start -d force-app --ignore-conflicts
+sf project deploy start -d force-app -d subscriber --ignore-conflicts
 sf apex test run -l RunLocalTests -c -w 30
 ```
 
@@ -106,4 +122,4 @@ npx sfdx-lwc-jest
 
 - Every Apex class has a test class, and every component a `__tests__` folder. Change them together.
 - When a framework guide changes, the tests under `classes/guides/` are where its statements get checked.
-- Keep `README.md` and the manifests (`reform.xml`, `rollup.xml`, `clone.xml`, `import.xml`) in step with the code.
+- Keep `README.md` in step with the code. A package version is built only with the user's approval: `sf package version create --package Unify --code-coverage --installation-key-bypass --wait 30`.

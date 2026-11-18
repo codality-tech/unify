@@ -3,7 +3,8 @@
  * Bypass_Triggers saves records without the triggers running; any other user does not.
  *
  * The rollup sample is the witness. Its child trigger keeps Child_Count__c on the parent, so the
- * count says whether the trigger ran.
+ * count says whether the trigger ran. That trigger runs on the solutions' application, so each test
+ * gives Unify.s the same rule that App gives App.s.
  */
 @IsTest
 private class BypassTriggersTest {
@@ -39,8 +40,14 @@ private class BypassTriggersTest {
     return loader;
   }
 
+  private static Boolean ruleGiven = false;
+
   // Saves a parent with one child as the user, and returns the parent's count as the rollup left it.
   private static Decimal childCountAfterSavingAs(User who) {
+    if (!ruleGiven) {
+      Unify.s.tf().disableWhen(new BypassTriggers());
+      ruleGiven = true;
+    }
     Id parentId;
     System.runAs(who) {
       Rollup_Sample_Parent__c parent = new Rollup_Sample_Parent__c(Name = 'North');

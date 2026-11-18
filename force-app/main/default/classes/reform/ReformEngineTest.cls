@@ -15,14 +15,7 @@ private class ReformEngineTest {
     return new ReformEngine(ReformPlan.compile(ReformDefinition.fromMap((Map<String, Object>) JSON.deserializeUntyped(written))));
   }
 
-  // The example triggers on Account do work of their own; these tests are not about them.
-  private static void quietAccountTriggers() {
-    App.s.tf().disable(new List<SObjectType>{ Account.SObjectType });
-    App.b.tf().disable();
-  }
-
   private static Account company(String name) {
-    quietAccountTriggers();
     Account made = new Account(Name = name);
     insert made;
     return made;
