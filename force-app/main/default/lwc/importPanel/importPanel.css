@@ -1,0 +1,5 @@
+summary {
+    cursor: pointer;
+    display: list-item;
+    color: var(--slds-g-color-neutral-base-30, #444);
+}

@@ -1,0 +1,100 @@
+<template>
+    <article class="slds-card">
+        <div class="slds-card__header">
+            <h2 class="slds-card__header-title" data-id="title">{title}</h2>
+        </div>
+        <div class="slds-card__body slds-card__body_inner">
+            <p lwc:if={noFormats} class="slds-text-color_weak" data-id="none">
+                There are no import formats yet. An admin adds them in Setup, under Custom Metadata Types.
+            </p>
+
+            <lightning-combobox
+                lwc:if={choosing}
+                label="Format"
+                placeholder="Choose what the file holds"
+                options={options}
+                value={chosen}
+                onchange={handleFormat}
+                class="slds-m-bottom_small"
+                data-id="format"
+            ></lightning-combobox>
+
+            <template lwc:if={current}>
+                <p class="slds-m-bottom_x-small" data-id="summary">{current.summary}.</p>
+                <p lwc:if={headers} class="slds-text-color_weak slds-m-bottom_small" data-id="headers">
+                    Columns: {headers}.
+                    <a href={templateHref} download={templateName} class="slds-m-left_x-small" data-id="template">Download an empty file</a>
+                </p>
+                <p lwc:else class="slds-text-color_weak slds-m-bottom_small" data-id="headers">
+                    Each column is read by its header: a field's name or label.
+                </p>
+
+                <lightning-input
+                    type="file"
+                    label="CSV file"
+                    accept=".csv,.txt"
+                    onchange={handleFile}
+                    disabled={running}
+                    data-id="file"
+                ></lightning-input>
+                <p lwc:if={fileNote} class="slds-m-top_x-small" data-id="file-note">{fileNote}</p>
+
+                <div class="slds-m-top_small">
+                    <lightning-button label="Check" onclick={handleCheck} disabled={idle} data-id="check"></lightning-button>
+                    <lightning-button
+                        variant="brand"
+                        label="Import"
+                        onclick={handleImport}
+                        disabled={idle}
+                        class="slds-m-left_x-small"
+                        data-id="import"
+                    ></lightning-button>
+                </div>
+            </template>
+
+            <div lwc:if={running} class="slds-m-top_small" data-id="progress">
+                <lightning-progress-bar value={progress}></lightning-progress-bar>
+                <p class="slds-text-color_weak">{progressNote}</p>
+            </div>
+
+            <p lwc:if={problem} class="slds-text-color_error slds-m-top_small" role="alert" data-id="problem">{problem}</p>
+
+            <div lwc:if={outcome} class="slds-m-top_medium" data-id="outcome">
+                <p class={headlineClass} data-id="headline">{headline}</p>
+                <ul lwc:if={hasNotes} class="slds-list_dotted slds-m-top_x-small">
+                    <template for:each={notes} for:item="note">
+                        <li key={note.key} data-id="note">{note.text}</li>
+                    </template>
+                </ul>
+                <details class="slds-m-top_x-small">
+                    <summary>How the columns were read</summary>
+                    <ul class="slds-list_dotted">
+                        <template for:each={readings} for:item="reading">
+                            <li key={reading.key} data-id="reading">{reading.text}</li>
+                        </template>
+                    </ul>
+                </details>
+
+                <template lwc:if={hasFailures}>
+                    <div class="slds-m-top_small">
+                        <a lwc:if={outcome.file} href={failuresHref} download={failuresName} data-id="failures-file">
+                            Download the rows that failed
+                        </a>
+                        <span class="slds-text-color_weak slds-m-left_x-small">Correct them and import that file: its Error column is not read.</span>
+                    </div>
+                    <div class="slds-m-top_x-small">
+                        <lightning-datatable
+                            key-field="row"
+                            data={failuresShown}
+                            columns={failureColumns}
+                            hide-checkbox-column
+                            wrap-text-max-lines="4"
+                            data-id="failures"
+                        ></lightning-datatable>
+                    </div>
+                    <p lwc:if={moreFailures} class="slds-text-color_weak" data-id="more">{moreFailures}</p>
+                </template>
+            </div>
+        </div>
+    </article>
+</template>

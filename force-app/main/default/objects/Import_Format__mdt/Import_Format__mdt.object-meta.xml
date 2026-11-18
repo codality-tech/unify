@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>A kind of CSV file that can be imported: the object its rows become, whether they create records, update them or both, and the field rows are matched on. Its columns are Import Column records; with none, a file is read by its headers.</description>
+    <label>Import Format</label>
+    <pluralLabel>Import Formats</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

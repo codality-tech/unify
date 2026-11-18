@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Code__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>The parent&apos;s key in another system. An external Id, so records can be upserted on it and children can name their parent by it.</description>
+    <externalId>true</externalId>
+    <label>Code</label>
+    <length>40</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

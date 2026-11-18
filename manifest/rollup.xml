@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!-- Rollup Apex classes -->
+    <types>
+        <members>RollupHandler</members>
+        <members>RollupHandlerTest</members>
+        <members>RollupJobs</members>
+        <members>RollupJobsTest</members>
+        <members>RollupPlan</members>
+        <members>RollupPlanTest</members>
+        <members>RollupRule</members>
+        <members>RollupRuleTest</members>
+        <members>RollupRules</members>
+        <members>RollupRulesTest</members>
+        <members>RollupScheme</members>
+        <members>RollupSchemeTest</members>
+        <members>Rollups</members>
+        <members>RollupsTest</members>
+        <name>ApexClass</name>
+    </types>
+
+    <!-- Triggers of the sample objects -->
+    <types>
+        <members>RollupSampleChildTrigger</members>
+        <members>RollupSampleParentTrigger</members>
+        <name>ApexTrigger</name>
+    </types>
+
+    <!-- The rule type and the sample objects -->
+    <types>
+        <members>Rollup_Rule__mdt</members>
+        <members>Rollup_Sample_Child__c</members>
+        <members>Rollup_Sample_Parent__c</members>
+        <name>CustomObject</name>
+    </types>
+
+    <!-- Their fields -->
+    <types>
+        <members>Rollup_Rule__mdt.Active__c</members>
+        <members>Rollup_Rule__mdt.Child_Object__c</members>
+        <members>Rollup_Rule__mdt.Filter__c</members>
+        <members>Rollup_Rule__mdt.Guard_Parent_Delete__c</members>
+        <members>Rollup_Rule__mdt.Lookup_Field__c</members>
+        <members>Rollup_Rule__mdt.Operation__c</members>
+        <members>Rollup_Rule__mdt.Parent_Field__c</members>
+        <members>Rollup_Rule__mdt.Source_Field__c</members>
+        <members>Rollup_Rule__mdt.Timing__c</members>
+        <members>Rollup_Sample_Child__c.Amount__c</members>
+        <members>Rollup_Sample_Child__c.Due__c</members>
+        <members>Rollup_Sample_Child__c.Former_Parent__c</members>
+        <members>Rollup_Sample_Child__c.Kind__c</members>
+        <members>Rollup_Sample_Child__c.Parent__c</members>
+        <members>Rollup_Sample_Child__c.Status__c</members>
+        <members>Rollup_Sample_Parent__c.Average_Amount__c</members>
+        <members>Rollup_Sample_Parent__c.Child_Count__c</members>
+        <members>Rollup_Sample_Parent__c.Code__c</members>
+        <members>Rollup_Sample_Parent__c.Earliest_Due__c</members>
+        <members>Rollup_Sample_Parent__c.Kinds__c</members>
+        <members>Rollup_Sample_Parent__c.Largest_Amount__c</members>
+        <members>Rollup_Sample_Parent__c.Open_Amount__c</members>
+        <name>CustomField</name>
+    </types>
+
+    <!-- The sample rules -->
+    <types>
+        <members>Rollup_Rule.Sample_Average_Amount</members>
+        <members>Rollup_Rule.Sample_Child_Count</members>
+        <members>Rollup_Rule.Sample_Earliest_Due</members>
+        <members>Rollup_Rule.Sample_Kinds</members>
+        <members>Rollup_Rule.Sample_Largest_Amount</members>
+        <members>Rollup_Rule.Sample_Open_Amount</members>
+        <name>CustomMetadata</name>
+    </types>
+
+    <!-- Layouts -->
+    <types>
+        <members>Rollup_Sample_Child__c-Rollup Sample Child Layout</members>
+        <members>Rollup_Sample_Parent__c-Rollup Sample Parent Layout</members>
+        <name>Layout</name>
+    </types>
+
+    <!-- Tab -->
+    <types>
+        <members>Rollup_Sample_Parent__c</members>
+        <name>CustomTab</name>
+    </types>
+
+    <!-- Permission set -->
+    <types>
+        <members>Rollup_Sample</members>
+        <name>PermissionSet</name>
+    </types>
+
+    <version>64.0</version>
+</Package>

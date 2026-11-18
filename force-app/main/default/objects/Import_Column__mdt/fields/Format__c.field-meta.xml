@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Format__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>The format this column belongs to.</inlineHelpText>
+    <label>Format</label>
+    <referenceTo>Import_Format__mdt</referenceTo>
+    <relationshipLabel>Columns</relationshipLabel>
+    <relationshipName>Columns</relationshipName>
+    <required>true</required>
+    <type>MetadataRelationship</type>
+    <unique>false</unique>
+</CustomField>

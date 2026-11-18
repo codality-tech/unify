@@ -1,0 +1,18 @@
+<template>
+    <div class="slds-p-around_medium">
+        <lightning-radio-group
+            label="Blueprint"
+            type="button"
+            options={options}
+            value={chosen}
+            onchange={handleChoose}
+            class="slds-m-bottom_small"
+        ></lightning-radio-group>
+        <template for:each={shown} for:item="sample">
+            <div key={sample.value}>
+                <p class="slds-text-color_weak slds-m-bottom_small" data-id="note">{sample.note}</p>
+                <c-reform-panel blueprint={sample.blueprint} page-size="5"></c-reform-panel>
+            </div>
+        </template>
+    </div>
+</template>

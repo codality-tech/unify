@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All_Or_Nothing__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Checked: one row that fails stops the whole file. Unchecked: the other rows are saved.</inlineHelpText>
+    <label>All Or Nothing</label>
+    <defaultValue>false</defaultValue>
+    <type>Checkbox</type>
+</CustomField>

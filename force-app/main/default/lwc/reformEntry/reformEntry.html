@@ -1,0 +1,135 @@
+<template>
+    <div class="slds-is-relative">
+        <lightning-spinner lwc:if={busy} alternative-text="Working" size="small"></lightning-spinner>
+
+        <div lwc:if={failure} class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_small" role="alert">
+            <lightning-icon icon-name="utility:error" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+            <span data-id="failure">{failure}</span>
+        </div>
+
+        <template lwc:if={view}>
+            <h2 class="slds-text-heading_small slds-m-bottom_small" data-id="title">{heading}</h2>
+
+            <div lwc:if={hasProblems} class="slds-scoped-notification slds-theme_warning slds-m-bottom_small" role="status">
+                <p class="slds-text-title_bold">This blueprint has mistakes</p>
+                <ul class="slds-list_dotted">
+                    <template for:each={problems} for:item="problem">
+                        <li key={problem} data-id="problem">{problem}</li>
+                    </template>
+                </ul>
+            </div>
+
+            <div class="slds-grid slds-wrap slds-gutters_x-small">
+                <template for:each={parts} for:item="part">
+                    <div key={part.key} class={part.cellClass}>
+                        <h3 lwc:if={part.isHeading} class="slds-text-heading_small" data-id="heading">{part.content}</h3>
+
+                        <lightning-formatted-rich-text
+                            lwc:elseif={part.isRichText}
+                            value={part.content}
+                            data-id="rich-text"
+                        ></lightning-formatted-rich-text>
+
+                        <lightning-record-picker
+                            lwc:elseif={part.isLookup}
+                            label={part.label}
+                            object-api-name={part.lookupTo}
+                            value={part.lookupValue}
+                            required={part.required}
+                            disabled={part.readOnly}
+                            field-level-help={part.helpText}
+                            data-field={part.name}
+                            data-kind={part.kind}
+                            data-reactive={part.reactive}
+                            onchange={handleChange}
+                        ></lightning-record-picker>
+
+                        <lightning-combobox
+                            lwc:elseif={part.isPicklist}
+                            label={part.label}
+                            options={part.options}
+                            value={part.value}
+                            required={part.required}
+                            disabled={part.readOnly}
+                            field-level-help={part.helpText}
+                            data-field={part.name}
+                            data-kind={part.kind}
+                            data-reactive={part.reactive}
+                            onchange={handleChange}
+                        ></lightning-combobox>
+
+                        <lightning-dual-listbox
+                            lwc:elseif={part.isMultiPicklist}
+                            label={part.label}
+                            source-label="Available"
+                            selected-label="Chosen"
+                            options={part.options}
+                            value={part.selected}
+                            required={part.required}
+                            disabled={part.readOnly}
+                            field-level-help={part.helpText}
+                            data-field={part.name}
+                            data-kind={part.kind}
+                            data-reactive={part.reactive}
+                            onchange={handleChange}
+                        ></lightning-dual-listbox>
+
+                        <lightning-textarea
+                            lwc:elseif={part.isLongText}
+                            label={part.label}
+                            value={part.value}
+                            required={part.required}
+                            disabled={part.readOnly}
+                            field-level-help={part.helpText}
+                            data-field={part.name}
+                            data-kind={part.kind}
+                            data-reactive={part.reactive}
+                            onchange={handleChange}
+                        ></lightning-textarea>
+
+                        <lightning-input
+                            lwc:elseif={part.isCheckbox}
+                            type="checkbox"
+                            label={part.label}
+                            checked={part.checked}
+                            disabled={part.readOnly}
+                            field-level-help={part.helpText}
+                            data-field={part.name}
+                            data-kind={part.kind}
+                            data-reactive={part.reactive}
+                            onchange={handleChange}
+                        ></lightning-input>
+
+                        <lightning-input
+                            lwc:elseif={part.isInput}
+                            type={part.inputType}
+                            formatter={part.formatter}
+                            step={part.step}
+                            label={part.label}
+                            value={part.value}
+                            required={part.required}
+                            disabled={part.readOnly}
+                            field-level-help={part.helpText}
+                            data-field={part.name}
+                            data-kind={part.kind}
+                            data-reactive={part.reactive}
+                            onchange={handleChange}
+                        ></lightning-input>
+                    </div>
+                </template>
+            </div>
+
+            <div lwc:if={showActions} class="slds-m-top_small slds-text-align_right">
+                <lightning-button label="Cancel" onclick={handleCancel} data-id="cancel"></lightning-button>
+                <lightning-button
+                    label="Save"
+                    variant="brand"
+                    class="slds-m-left_x-small"
+                    disabled={busy}
+                    onclick={handleSave}
+                    data-id="save"
+                ></lightning-button>
+            </div>
+        </template>
+    </div>
+</template>

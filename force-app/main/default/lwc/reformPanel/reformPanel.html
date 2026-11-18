@@ -1,0 +1,26 @@
+<template>
+    <article class="slds-card">
+        <div lwc:if={title} class="slds-card__header">
+            <h2 class="slds-card__header-title" data-id="title">{title}</h2>
+        </div>
+        <div class="slds-card__body slds-card__body_inner">
+            <template lwc:if={configured}>
+                <c-reform-entry
+                    lwc:if={entering}
+                    blueprint={definition}
+                    record-id={enteringId}
+                    onsaved={handleDone}
+                    oncancel={handleDone}
+                ></c-reform-entry>
+                <c-reform-list
+                    lwc:else
+                    blueprint={definition}
+                    page-size={pageSize}
+                    onnew={handleNew}
+                    onedit={handleEdit}
+                ></c-reform-list>
+            </template>
+            <p lwc:else class="slds-text-color_weak" data-id="unconfigured">Choose a blueprint for this panel.</p>
+        </div>
+    </article>
+</template>
