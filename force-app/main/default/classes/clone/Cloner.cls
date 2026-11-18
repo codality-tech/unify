@@ -24,7 +24,7 @@ public with sharing class Cloner {
   /** Copies several records of the plan's object; returns the Id of each one's copy, by the original's Id. */
   public static Map<Id, Id> copy(String planName, Set<Id> recordIds) {
     ClonePlan plan = ClonePlans.named(planName);
-    unif.IWork work = App.s.work().withSharing(true);
+    inj.IWork work = App.s.work().withSharing(true);
     work.options().DuplicateRuleHeader.allowSave = true;
 
     Map<Id, SObject> copies = copyLevel(plan.root, recordIds, null, work);
@@ -46,7 +46,7 @@ public with sharing class Cloner {
   // Reads one step's records (the originals named, or the children of the originals above), tracks
   // a copy of each under the copy of its parent, and goes on to the steps beneath. Returns the
   // copies by their original's Id.
-  private static Map<Id, SObject> copyLevel(ClonePlan.Node node, Set<Id> ids, Map<Id, SObject> copiesAbove, unif.IWork work) {
+  private static Map<Id, SObject> copyLevel(ClonePlan.Node node, Set<Id> ids, Map<Id, SObject> copiesAbove, inj.IWork work) {
     Map<Id, SObject> copies = new Map<Id, SObject>();
     DescribeSObjectResult shape = node.model.describe();
     Boolean readable = shape.isAccessible() && (node.lookup == null || node.model.scheme().getFieldDescribe(node.lookup).isAccessible());
@@ -57,7 +57,7 @@ public with sharing class Cloner {
       return copies;
     }
 
-    unif.IQuery reading = node.model.query().withSharing(true);
+    inj.IQuery reading = node.model.query().withSharing(true);
     reading.fields().add(node.copiedFields());
     if (node.lookup == null) {
       reading.addCondition(App.s.condId(ids));

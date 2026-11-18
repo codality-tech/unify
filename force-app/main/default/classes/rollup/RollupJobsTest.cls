@@ -39,7 +39,7 @@ private class RollupJobsTest {
     Id holderId = driftedParent();
 
     Test.startTest();
-    unif.IJob started = Rollups.sweep();
+    inj.IJob started = Rollups.sweep();
     Test.stopTest();
 
     Assert.isNotNull(started.getJobId());
@@ -48,7 +48,7 @@ private class RollupJobsTest {
 
   @IsTest
   static void aSweepTakesEachParentObjectInTurn() {
-    unif.Async.synchronousInTests = true;
+    inj.Async.synchronousInTests = true;
     RollupRules.use(new List<RollupRule>{ sampleCount(), contactCount() });
     Id holderId = driftedParent();
     Account firm = new Account(Name = 'Firm');
@@ -74,7 +74,7 @@ private class RollupJobsTest {
 
   @IsTest
   static void theNightlyJobSweeps() {
-    unif.Async.synchronousInTests = true;
+    inj.Async.synchronousInTests = true;
     RollupRules.use(new List<RollupRule>{ sampleCount() });
     Id holderId = driftedParent();
     RollupJobs.Nightly nightly = new RollupJobs.Nightly();
@@ -88,7 +88,7 @@ private class RollupJobsTest {
 
   @IsTest
   static void theNightlyJobCanBeScheduled() {
-    unif.ISchedulable nightly = unif.Async.schedulable(new RollupJobs.Nightly());
+    inj.ISchedulable nightly = inj.Async.schedulable(new RollupJobs.Nightly());
 
     nightly.run();
     Assert.areEqual(1, [SELECT COUNT() FROM CronTrigger WHERE CronJobDetail.Name = 'Rollup sweep']);

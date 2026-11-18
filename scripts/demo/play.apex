@@ -4,7 +4,7 @@
 Savepoint before = Database.setSavepoint();
 Demo.quietExamples();
 
-unif.IQuery q = App.s.model(Account.SObjectType).query();
+inj.IQuery q = App.s.model(Account.SObjectType).query();
 q.fields().add(new Set<SObjectField>{ Account.Name, Account.Industry, Account.Rating });
 q.filters().add(App.s.eq(Account.Site, 'Injectify demo'));
 q.filters().add(App.s.model(Account.SObjectType).parseCondition('Rating = \'Hot\' OR AnnualRevenue > 5000000'));

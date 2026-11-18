@@ -1,4 +1,4 @@
-public class Scheme64 implements unif.IScheme {
+public class Scheme64 implements inj.IScheme {
     public SObjectType getSObjectType(string sobjectName) {
         try{
             return ((SObject)Type.forName(sobjectName)?.newInstance())?.getSObjectType();

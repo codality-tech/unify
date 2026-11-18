@@ -1,10 +1,10 @@
-global class Accounts extends unif.BaseDomain implements IAccounts {
+global class Accounts extends inj.BaseDomain implements IAccounts {
     
     global Accounts() {
         super();
     }
     
-    global Accounts(unif.IModel source, List<SObject> records) {
+    global Accounts(inj.IModel source, List<SObject> records) {
         super(source, records);
     }
 

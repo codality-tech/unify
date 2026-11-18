@@ -2,7 +2,7 @@
  * Helpers for showing the framework from anonymous Apex: what a query looks like, what came back,
  * and what a piece of work cost.
  *
- *   unif.IQuery q = App.s.model(Account.SObjectType).query();
+ *   inj.IQuery q = App.s.model(Account.SObjectType).query();
  *   q.fields().add(new Set<SObjectField>{ Account.Name, Account.Industry });
  *   Demo.run(q, new List<String>{ 'Name', 'Industry' });   // prints the SOQL, then the rows as a table
  *   Demo.cost('That query');                               // prints what was spent since the last mark
@@ -31,12 +31,12 @@ public class Demo {
   }
 
   /** The query as SOQL, with its values written in. */
-  public static void soql(unif.IQuery query) {
+  public static void soql(inj.IQuery query) {
     say(query.toSoql());
   }
 
   /** Prints the query, runs it, prints the rows, and hands them back. */
-  public static List<SObject> run(unif.IQuery query, List<String> columns) {
+  public static List<SObject> run(inj.IQuery query, List<String> columns) {
     soql(query);
     List<SObject> records = query.run();
     table(records, columns);
@@ -112,11 +112,11 @@ public class Demo {
   }
 
   /** What a unit of work could not save, one line for each record. */
-  public static void failures(unif.IWork work) {
+  public static void failures(inj.IWork work) {
     if (work.failures().isEmpty()) {
       say('Every record was saved');
     }
-    for (unif.IWorkFailure failure : work.failures()) {
+    for (inj.IWorkFailure failure : work.failures()) {
       say(failure.getRecord().getSObjectType() + nameOf(failure.getRecord()) + ': ' + failure.getMessage().removeStart('Not saved: '));
     }
   }

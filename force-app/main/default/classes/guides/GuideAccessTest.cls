@@ -57,7 +57,7 @@ private class GuideAccessTest {
     );
   }
 
-  private static String refusal(unif.IWork work) {
+  private static String refusal(inj.IWork work) {
     try {
       work.apply();
     } catch (Exception refused) {
@@ -92,7 +92,7 @@ private class GuideAccessTest {
 
       // Leaving the field off the record is the way round a refusal.
       Account sent = new Account(Id = stored.Id, Industry = 'Energy', Rating = 'Cold');
-      SObject cropped = unif.FieldUtil.crop(sent, new Set<SObjectField>{ Account.Id, Account.Industry });
+      SObject cropped = inj.FieldUtil.crop(sent, new Set<SObjectField>{ Account.Id, Account.Industry });
       Assert.isNull(refusal(App.s.work().withSharing(true).track(cropped)));
     }
 
@@ -124,7 +124,7 @@ private class GuideAccessTest {
     System.runAs(stranger) {
       // An upsert is held to the user's permissions like the other statements.
       List<Rollup_Sample_Parent__c> incoming = new List<Rollup_Sample_Parent__c>{ new Rollup_Sample_Parent__c(Name = 'Mine', Code__c = 'M-1') };
-      unif.IWork lenient = App.s.work().withSharing(true).track(incoming, Rollup_Sample_Parent__c.Code__c);
+      inj.IWork lenient = App.s.work().withSharing(true).track(incoming, Rollup_Sample_Parent__c.Code__c);
       lenient.options().optAllOrNone = false;
       lenient.apply();
       Assert.areEqual('Access to entity \'Rollup_Sample_Parent__c\' denied', lenient.failureOf(incoming[0]).getMessage());
@@ -157,7 +157,7 @@ private class GuideAccessTest {
     User editor = editor();
 
     System.runAs(editor) {
-      unif.IWork partial = App.s.work().withSharing(true);
+      inj.IWork partial = App.s.work().withSharing(true);
       partial.options().optAllOrNone = false;
       Account initech = new Account(Name = 'Initech', Rating = 'Hot');
       partial.track(initech);
@@ -179,14 +179,14 @@ private class GuideAccessTest {
 
     System.runAs(editor) {
       // GuideApp registers a query class for Account whose defaults include AnnualRevenue.
-      unif.IQuery asUser = GuideApp.s.qf().make(Account.SObjectType).withSharing(true);
+      inj.IQuery asUser = GuideApp.s.qf().make(Account.SObjectType).withSharing(true);
       Assert.areEqual('SELECT Id, Name, Industry FROM Account', asUser.toSoql());
       Assert.areEqual('Energy', ((Account) asUser.fetch()).Industry);
 
       Assert.areEqual('SELECT Id, Name, Industry, AnnualRevenue FROM Account', GuideApp.s.qf().make(Account.SObjectType).toSoql());
 
       // A field added by name is kept, and the platform refuses the query.
-      unif.IQuery named = GuideApp.s.model(Account.SObjectType).query().withSharing(true);
+      inj.IQuery named = GuideApp.s.model(Account.SObjectType).query().withSharing(true);
       named.fields().add(new Set<SObjectField>{ Account.AnnualRevenue });
       try {
         named.run();
@@ -201,28 +201,28 @@ private class GuideAccessTest {
   // unless the scheme that runs it declares a sharing keyword of its own.
 
   // The same count as an aggregate query. This method has no sharing of its own: it takes its caller's.
-  private static Object countedBy(unif.IApplication through) {
-    unif.IAggregateQuery tally = through.model(Reform_Private_Sample__c.SObjectType).aggregateQuery();
-    tally.aggregates().add(through.aggregate(unif.Enums.Aggregate.COUNT, null));
+  private static Object countedBy(inj.IApplication through) {
+    inj.IAggregateQuery tally = through.model(Reform_Private_Sample__c.SObjectType).aggregateQuery();
+    tally.aggregates().add(through.aggregate(inj.Enums.Aggregate.COUNT, null));
     return tally.run()[0].get('cnt');
   }
 
   private without sharing class BuiltWithoutSharing {
-    private Integer samples(unif.IApplication through) {
+    private Integer samples(inj.IApplication through) {
       return through.model(Reform_Private_Sample__c.SObjectType).query().count();
     }
 
-    private Object counted(unif.IApplication through) {
+    private Object counted(inj.IApplication through) {
       return GuideAccessTest.countedBy(through);
     }
   }
 
   private with sharing class BuiltWithSharing {
-    private Integer samples(unif.IApplication through) {
+    private Integer samples(inj.IApplication through) {
       return through.model(Reform_Private_Sample__c.SObjectType).query().count();
     }
 
-    private Object counted(unif.IApplication through) {
+    private Object counted(inj.IApplication through) {
       return GuideAccessTest.countedBy(through);
     }
   }
@@ -243,7 +243,7 @@ private class GuideAccessTest {
 
     System.runAs(editor) {
       insert new Reform_Private_Sample__c(Name = 'Mine');
-      unif.IApplication packageDefault = unif.Application.make();
+      inj.IApplication packageDefault = inj.Application.make();
 
       // App's scheme has no sharing keyword, and the scheme the package uses when given none
       // inherits: the query has the sharing of the class that builds it.
@@ -270,12 +270,12 @@ private class GuideAccessTest {
   @IsTest
   static void aSearchIsMockedLikeAQuery() {
     List<Account> canned = new List<Account>{ new Account(Name = 'Acme') };
-    unif.MockScheme scheme = new unif.MockScheme().returning(Account.SObjectType, canned);
-    unif.IApplication app = unif.Application.make(scheme);
-    unif.IQuery accounts = app.qf().make(Account.SObjectType);
-    unif.IQuery contacts = app.qf().make(Contact.SObjectType);
+    inj.MockScheme scheme = new inj.MockScheme().returning(Account.SObjectType, canned);
+    inj.IApplication app = inj.Application.make(scheme);
+    inj.IQuery accounts = app.qf().make(Account.SObjectType);
+    inj.IQuery contacts = app.qf().make(Contact.SObjectType);
 
-    List<List<SObject>> found = app.searchQuery(new List<unif.IQuery>{ accounts, contacts }).run('Acme');
+    List<List<SObject>> found = app.searchQuery(new List<inj.IQuery>{ accounts, contacts }).run('Acme');
 
     Assert.areEqual(2, found.size());
     Assert.areEqual('Acme', ((Account) found[0][0]).Name);
@@ -293,8 +293,8 @@ private class GuideAccessTest {
     Test.setFixedSearchResults(new List<Id>{ acme.Id });
 
     // App's scheme is this repository's own, written before schemes could search.
-    unif.IQuery accounts = App.s.model(Account.SObjectType).query();
-    List<List<SObject>> found = App.s.searchQuery(new List<unif.IQuery>{ accounts }).run('Acme');
+    inj.IQuery accounts = App.s.model(Account.SObjectType).query();
+    List<List<SObject>> found = App.s.searchQuery(new List<inj.IQuery>{ accounts }).run('Acme');
 
     Assert.areEqual(acme.Id, found[0][0].Id);
   }
@@ -303,9 +303,9 @@ private class GuideAccessTest {
 
   @IsTest
   static void aBatchStartedInsideABatchRuns() {
-    unif.Async.synchronousInTests = true;
+    inj.Async.synchronousInTests = true;
 
-    unif.Async.iterable(new GuideExamples.StartsABatch('guide mark')).run();
+    inj.Async.iterable(new GuideExamples.StartsABatch('guide mark')).run();
 
     Assert.areEqual(1, [SELECT COUNT() FROM Reform_Private_Sample__c WHERE Name = 'guide mark']);
   }
@@ -314,7 +314,7 @@ private class GuideAccessTest {
 
   @IsTest
   static void aSharedValueNobodySetIsNull() {
-    unif.IJob job = unif.Async.iterable(new GuideExamples.LeavesAMark('unused'));
+    inj.IJob job = inj.Async.iterable(new GuideExamples.LeavesAMark('unused'));
 
     Assert.isNull(job.getShared('never set'));
     Assert.areEqual(3, job.setShared('count', 3).getShared('count'));

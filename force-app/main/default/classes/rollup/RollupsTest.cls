@@ -122,7 +122,7 @@ private class RollupsTest {
 
   @IsTest
   static void jobsRunInlineLeaveNothingWaiting() {
-    unif.Async.synchronousInTests = true;
+    inj.Async.synchronousInTests = true;
     RollupRules.use(new List<RollupRule>{ kinds().queued() });
     Rollup_Sample_Parent__c holder = parent('Holder');
 

@@ -1,4 +1,4 @@
-public class Scheme30 implements unif.IScheme {
+public class Scheme30 implements inj.IScheme {
     public SObjectType getSObjectType(string sobjectName) {
         try{
             return ((SObject)Type.forName(sobjectName)?.newInstance())?.getSObjectType();

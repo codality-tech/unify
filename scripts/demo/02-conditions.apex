@@ -3,10 +3,10 @@
 Demo.title('A rule an admin could type into a setting');
 String rule = 'Industry IN (\'Energy\', \'Banking\') AND (AnnualRevenue > 5000000 OR Rating = \'Hot\')';
 Demo.say(rule);
-unif.ICondition worthACall = App.s.model(Account.SObjectType).parseCondition(rule);
+inj.ICondition worthACall = App.s.model(Account.SObjectType).parseCondition(rule);
 
 Demo.title('As a query');
-unif.IQuery q = App.s.model(Account.SObjectType).query();
+inj.IQuery q = App.s.model(Account.SObjectType).query();
 q.fields().add(new Set<SObjectField>{ Account.Name, Account.Industry, Account.AnnualRevenue, Account.Rating });
 q.filters().add(App.s.eq(Account.Site, 'Injectify demo'));
 q.filters().add(worthACall);
@@ -23,8 +23,8 @@ for (Account one : new List<Account>{ big, keen, neither }) {
 Demo.cost('Asking');
 
 Demo.title('Moved one relationship out: the contacts of those accounts');
-unif.ICondition theirPeople = worthACall.prepend(App.s.reference(Contact.AccountId));
-unif.IQuery people = App.s.model(Contact.SObjectType).query();
+inj.ICondition theirPeople = worthACall.prepend(App.s.reference(Contact.AccountId));
+inj.IQuery people = App.s.model(Contact.SObjectType).query();
 people.fields().add(new Set<SObjectField>{ Contact.LastName });
 people.fields().add('Account', new Set<SObjectField>{ Account.Name });
 people.filters().add(App.s.eq(new List<SObjectField>{ Contact.AccountId, Account.Site }, 'Injectify demo'));
@@ -33,10 +33,10 @@ people.orderings().add(App.s.ordering(Contact.LastName, true, false));
 Demo.run(people, new List<String>{ 'LastName', 'Account.Name' });
 
 Demo.title('Built in code instead, it reads the same');
-unif.ICondition built = App.s.all(new List<unif.ICondition>{
+inj.ICondition built = App.s.all(new List<inj.ICondition>{
   App.s.iin(Account.Industry, new Set<String>{ 'Energy', 'Banking' }),
-  App.s.any(new List<unif.ICondition>{ App.s.gt(Account.AnnualRevenue, 5000000), App.s.eq(Account.Rating, 'Hot') })
+  App.s.any(new List<inj.ICondition>{ App.s.gt(Account.AnnualRevenue, 5000000), App.s.eq(Account.Rating, 'Hot') })
 });
-unif.IQuery again = App.s.model(Account.SObjectType).query();
+inj.IQuery again = App.s.model(Account.SObjectType).query();
 again.filters().add(built);
 Demo.soql(again);

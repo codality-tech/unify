@@ -9,7 +9,7 @@ private class GuideExtensionTest {
   }
 
   // The fields a query selects: what is written between SELECT and FROM.
-  private static Set<String> selectedBy(unif.IQuery query) {
+  private static Set<String> selectedBy(inj.IQuery query) {
     return new Set<String>(query.toSoql().substringBetween('SELECT ', ' FROM ').split(', '));
   }
 
@@ -23,14 +23,14 @@ private class GuideExtensionTest {
   @IsTest
   static void aPairThatBreaksTheRegistryRulesIsRefusedWhenTheApplicationIsMade() {
     try {
-      unif.Application.make(null, null, new Map<Type, Type>{ Account.class => GuideExamples.Invoicing.class }, null);
+      inj.Application.make(null, null, new Map<Type, Type>{ Account.class => GuideExamples.Invoicing.class }, null);
       Assert.fail('Invoicing is not a query');
-    } catch (unif.Application.FactoryException refused) {
+    } catch (inj.Application.FactoryException refused) {
       Assert.isFalse(String.isBlank(refused.getMessage()));
     }
 
     // The five-argument form takes a trigger registry of its own, for handlers that are not domains.
-    unif.IApplication separate = unif.Application.make(null, null, null, null, new Map<Type, Type>{ Contact.class => GuideExamples.AuditTrail.class });
+    inj.IApplication separate = inj.Application.make(null, null, null, null, new Map<Type, Type>{ Contact.class => GuideExamples.AuditTrail.class });
     Assert.isNotNull(separate.tf());
   }
 
@@ -90,10 +90,10 @@ private class GuideExtensionTest {
 
   @IsTest
   static void aRegisteredClassThatNamesNoDefaultFieldsSelectsEveryField() {
-    unif.IApplication registered = unif.Application.make(null, null, new Map<Type, Type>{ Contact.class => GuideExamples.PlainContactQuery.class }, null);
-    unif.IApplication unregistered = unif.Application.make();
+    inj.IApplication registered = inj.Application.make(null, null, new Map<Type, Type>{ Contact.class => GuideExamples.PlainContactQuery.class }, null);
+    inj.IApplication unregistered = inj.Application.make();
 
-    unif.IQuery wide = registered.qf().make(Contact.SObjectType);
+    inj.IQuery wide = registered.qf().make(Contact.SObjectType);
     Set<String> everyField = selectedBy(wide);
     Set<String> trimmed = selectedBy(unregistered.qf().make(Contact.SObjectType));
 
@@ -129,7 +129,7 @@ private class GuideExtensionTest {
 
   @IsTest
   static void theFactoryCanStillCreateAClassThatBindsItself() {
-    unif.IApplication other = unif.Application.make(null, null, new Map<Type, Type>{ Account.class => GuideExamples.CopyableQuery.class }, null);
+    inj.IApplication other = inj.Application.make(null, null, new Map<Type, Type>{ Account.class => GuideExamples.CopyableQuery.class }, null);
 
     String soql = other.qf().make(Account.SObjectType).toSoql();
 
@@ -167,7 +167,7 @@ private class GuideExtensionTest {
     Id fakeId = Opportunity.SObjectType.getDescribe().getKeyPrefix() + '000000000001';
     Opportunity before = new Opportunity(Id = fakeId, StageName = 'Prospecting', Amount = 100);
     Opportunity after = new Opportunity(Id = fakeId, StageName = 'Prospecting', Amount = 500);
-    unif.IDomain deals = new GuideExamples.Opportunities(new List<Opportunity>{ after }).base();
+    inj.IDomain deals = new GuideExamples.Opportunities(new List<Opportunity>{ after }).base();
     Map<Id, SObject> oldMap = new Map<Id, SObject>{ fakeId => before };
 
     Assert.areEqual(0, deals.getChangedRecords(oldMap, new Set<SObjectField>{ Opportunity.StageName }).size());
@@ -183,7 +183,7 @@ private class GuideExtensionTest {
       new Opportunity(Name = 'C')
     };
     GuideExamples.Opportunities domain = new GuideExamples.Opportunities(rows);
-    unif.IDomain deals = domain.base();
+    inj.IDomain deals = domain.base();
 
     Assert.areEqual(3, deals.size());
     Assert.isTrue(deals.toMap().isEmpty(), 'no Ids yet');
@@ -289,7 +289,7 @@ private class GuideExtensionTest {
 
   @IsTest
   static void aConditionGivesTheSameAnswerInMemory() {
-    unif.ICondition rule = GuideApp.s.model(Account.SObjectType).parseCondition('Industry = \'Energy\' AND AnnualRevenue > 1000000');
+    inj.ICondition rule = GuideApp.s.model(Account.SObjectType).parseCondition('Industry = \'Energy\' AND AnnualRevenue > 1000000');
 
     Assert.isTrue(rule.evaluate(new Account(Industry = 'Energy', AnnualRevenue = 5000000)));
     Assert.isFalse(rule.evaluate(new Account(Industry = 'Retail', AnnualRevenue = 5000000)));
@@ -298,8 +298,8 @@ private class GuideExtensionTest {
   @IsTest
   static void aMockSchemeReturnsCannedRowsAndRecordsTheQuery() {
     List<Account> canned = new List<Account>{ new Account(Name = 'Acme', AnnualRevenue = 5000000) };
-    unif.MockScheme scheme = new unif.MockScheme().returning(Account.SObjectType, canned);
-    unif.IApplication app = unif.Application.make(scheme);
+    inj.MockScheme scheme = new inj.MockScheme().returning(Account.SObjectType, canned);
+    inj.IApplication app = inj.Application.make(scheme);
 
     List<Account> flagged = new GuideExamples.AccountReview(app).largeAccounts();
 
@@ -312,7 +312,7 @@ private class GuideExtensionTest {
 
   @IsTest
   static void aWorkCanBeAskedWhetherItHasAnythingToDo() {
-    unif.IWork work = GuideApp.s.work();
+    inj.IWork work = GuideApp.s.work();
     Assert.isFalse(work.hasWork());
     work.track(new Task(Subject = 'Renew'));
     Assert.isTrue(work.hasWork());

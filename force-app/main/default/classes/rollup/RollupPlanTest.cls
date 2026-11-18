@@ -68,7 +68,7 @@ private class RollupPlanTest {
     Assert.areEqual('The rule has no operation', problemsOf(noOperation));
 
     RollupRule noSource = counting();
-    noSource.operation = unif.Enums.Aggregate.SUM;
+    noSource.operation = inj.Enums.Aggregate.SUM;
     Assert.areEqual('SUM needs a source field', problemsOf(noSource));
 
     Assert.areEqual(

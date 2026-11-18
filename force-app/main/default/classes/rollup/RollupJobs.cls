@@ -4,7 +4,7 @@
  */
 public class RollupJobs {
   /** Recalculates the named rules for the parents given with each, in a transaction of its own. */
-  public class Recalculate implements unif.IQueueableHandler {
+  public class Recalculate implements inj.IQueueableHandler {
     private Map<String, Set<Id>> parentsByRule;
 
     public Recalculate(Map<String, Set<Id>> parentsByRule) {
@@ -19,16 +19,16 @@ public class RollupJobs {
   /**
    * Recalculates every rule that writes to one object, over all of its records. To run it with
    * fewer parents at a time (parents with very many children), start it yourself:
-   * unif.Async.queryable(new RollupJobs.Sweep('Account')).setBatchSize(50).run();
+   * inj.Async.queryable(new RollupJobs.Sweep('Account')).setBatchSize(50).run();
    */
-  public class Sweep implements unif.IBatchQueryableHandler {
+  public class Sweep implements inj.IBatchQueryableHandler {
     private String parentObject;
 
     public Sweep(String parentObject) {
       this.parentObject = parentObject;
     }
 
-    public unif.IQuery batchStart() {
+    public inj.IQuery batchStart() {
       return RollupScheme.app.model(parentObject).query();
     }
 
@@ -45,9 +45,9 @@ public class RollupJobs {
   }
 
   /**
-   * Sweeps every night at two. To schedule it: unif.Async.schedulable(new RollupJobs.Nightly()).run();
+   * Sweeps every night at two. To schedule it: inj.Async.schedulable(new RollupJobs.Nightly()).run();
    */
-  public class Nightly implements unif.ISchedulableHandler {
+  public class Nightly implements inj.ISchedulableHandler {
     public void schedulableExecute() {
       Rollups.sweep();
     }

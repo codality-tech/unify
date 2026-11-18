@@ -59,7 +59,7 @@ private class DemoTest {
   static void aQueryIsPrintedRunAndHandedBack() {
     Demo.quietExamples();
     insert new Account(Name = 'Acme', Industry = 'Energy');
-    unif.IQuery query = App.s.model(Account.SObjectType).query();
+    inj.IQuery query = App.s.model(Account.SObjectType).query();
     query.fields().add(new Set<SObjectField>{ Account.Name });
 
     Demo.title('Accounts');
@@ -72,7 +72,7 @@ private class DemoTest {
   @IsTest
   static void failuresArePrintedWithoutTrouble() {
     Demo.quietExamples();
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().optAllOrNone = false;
     work.track(new Account(Name = 'Good')).track(new Contact(LastName = 'Child'), Contact.AccountId, new Account());
     work.apply();

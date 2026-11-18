@@ -15,12 +15,12 @@ public class RollupPlan {
   public RollupRule rule { get; private set; }
   public List<String> problems { get; private set; }
 
-  public unif.IModel child { get; private set; }
-  public unif.IModel parent { get; private set; }
+  public inj.IModel child { get; private set; }
+  public inj.IModel parent { get; private set; }
   public SObjectField lookup { get; private set; }
   public SObjectField target { get; private set; }
   public SObjectField source { get; private set; }
-  public unif.ICondition filter { get; private set; }
+  public inj.ICondition filter { get; private set; }
 
   /** The child fields whose change can alter the result: the lookup, the source, and those the filter reads. */
   public Set<SObjectField> watched { get; private set; }
@@ -88,9 +88,9 @@ public class RollupPlan {
       problems.add('The rule has no operation');
       return;
     }
-    Boolean counts = rule.operation == unif.Enums.Aggregate.COUNT || rule.operation == unif.Enums.Aggregate.COUNT_DISTINCT;
+    Boolean counts = rule.operation == inj.Enums.Aggregate.COUNT || rule.operation == inj.Enums.Aggregate.COUNT_DISTINCT;
     if (String.isBlank(rule.sourceField)) {
-      if (rule.operation != unif.Enums.Aggregate.COUNT) {
+      if (rule.operation != inj.Enums.Aggregate.COUNT) {
         problems.add(rule.operation + ' needs a source field');
       }
     } else {
@@ -108,7 +108,7 @@ public class RollupPlan {
     Shape sourceKind = kindOf(sourceShape);
     if (!sourceShape.isAggregatable()) {
       problems.add(read + ' cannot be aggregated');
-    } else if (rule.operation == unif.Enums.Aggregate.SUM || rule.operation == unif.Enums.Aggregate.AVG) {
+    } else if (rule.operation == inj.Enums.Aggregate.SUM || rule.operation == inj.Enums.Aggregate.AVG) {
       if (sourceKind != Shape.NUMERIC) {
         problems.add(read + ' is not a number, so it cannot be summed or averaged');
       } else if (target != null && targetKind != Shape.NUMERIC) {
@@ -129,7 +129,7 @@ public class RollupPlan {
     }
     try {
       filter = child.parseCondition(rule.filter);
-      for (unif.IPath read : child.compileCondition(filter).getPaths()) {
+      for (inj.IPath read : child.compileCondition(filter).getPaths()) {
         watched.add(read.fieldSequence()[0]);
         filterIsLocal = filterIsLocal && read.size() == 1;
       }
@@ -139,7 +139,7 @@ public class RollupPlan {
     }
   }
 
-  private SObjectField fieldNamed(unif.IModel owner, String fieldName, String role) {
+  private SObjectField fieldNamed(inj.IModel owner, String fieldName, String role) {
     if (String.isBlank(fieldName)) {
       problems.add('The rule has no ' + role);
       return null;
@@ -151,7 +151,7 @@ public class RollupPlan {
     return found;
   }
 
-  private static DescribeFieldResult shapeOf(unif.IModel owner, SObjectField field) {
+  private static DescribeFieldResult shapeOf(inj.IModel owner, SObjectField field) {
     return owner.scheme().getFieldDescribe(field);
   }
 
@@ -189,7 +189,7 @@ public class RollupPlan {
   }
 
   /** A new function each time: its alias is set by whoever puts it in a query. */
-  public unif.IAggregateFunction function() {
+  public inj.IAggregateFunction function() {
     return RollupScheme.app.aggregate(rule.operation, source);
   }
 
@@ -208,9 +208,9 @@ public class RollupPlan {
    */
   public Object fit(Object result) {
     if (result == null) {
-      Boolean startsAtZero = rule.operation != unif.Enums.Aggregate.AVG &&
-        rule.operation != unif.Enums.Aggregate.MIN &&
-        rule.operation != unif.Enums.Aggregate.MAX;
+      Boolean startsAtZero = rule.operation != inj.Enums.Aggregate.AVG &&
+        rule.operation != inj.Enums.Aggregate.MIN &&
+        rule.operation != inj.Enums.Aggregate.MAX;
       return startsAtZero ? fit(0) : null;
     }
     if (targetKind != Shape.NUMERIC) {

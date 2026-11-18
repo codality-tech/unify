@@ -7,9 +7,9 @@
  * class happens to call, so the rollup has an application of its own, on a scheme declared WITHOUT
  * SHARING, and leaves App.s, with whatever scheme the rest of the org chose, alone.
  */
-public without sharing class RollupScheme implements unif.IScheme {
+public without sharing class RollupScheme implements inj.IScheme {
   /** Everything the rollup reads or writes goes through this. */
-  public static final unif.IApplication app = unif.Application.make(new RollupScheme());
+  public static final inj.IApplication app = inj.Application.make(new RollupScheme());
 
   public SObjectType getSObjectType(String sobjectName) {
     try {

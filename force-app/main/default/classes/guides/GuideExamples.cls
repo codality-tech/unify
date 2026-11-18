@@ -9,7 +9,7 @@ global class GuideExamples {
 
   // Custom query classes
 
-  global class AccountQuery extends unif.BaseQuery {
+  global class AccountQuery extends inj.BaseQuery {
     global override Set<SObjectField> getDefaultFields() {
       return new Set<SObjectField>{ Account.Id, Account.Name, Account.Industry, Account.AnnualRevenue };
     }
@@ -25,23 +25,23 @@ global class GuideExamples {
     }
   }
 
-  global class OpenCaseQuery extends unif.BaseQuery {
+  global class OpenCaseQuery extends inj.BaseQuery {
     global override Set<SObjectField> getDefaultFields() {
       return new Set<SObjectField>{ Case.Id, Case.Subject, Case.Priority };
     }
 
-    global override void onInitialized(unif.IModel source) {
+    global override void onInitialized(inj.IModel source) {
       base().addCondition(GuideApp.s.eq(Case.IsClosed, false));
       base().orderings().add(GuideApp.s.ordering(Case.CreatedDate, false, true));
     }
   }
 
   /** Registered, but says nothing about its fields. */
-  public class PlainContactQuery extends unif.BaseQuery {
+  public class PlainContactQuery extends inj.BaseQuery {
   }
 
   /** Can be created directly and copied, as well as by the factory. */
-  global class CopyableQuery extends unif.BaseQuery {
+  global class CopyableQuery extends inj.BaseQuery {
     global CopyableQuery() {
       super(GuideApp.s.model(Account.SObjectType));
     }
@@ -50,7 +50,7 @@ global class GuideExamples {
       super(other);
     }
 
-    global override void onInitialized(unif.IModel source) {
+    global override void onInitialized(inj.IModel source) {
       GuideExamples.copyableHookRuns++;
       base().addCondition(GuideApp.s.eq(Account.Type, 'Customer'));
     }
@@ -58,7 +58,7 @@ global class GuideExamples {
 
   // A domain class
 
-  global class Opportunities extends unif.BaseDomain {
+  global class Opportunities extends inj.BaseDomain {
     global Opportunities() {
       super();
     }
@@ -82,7 +82,7 @@ global class GuideExamples {
 
     public override void onAfterUpsert(Map<Id, SObject> oldMap) {
       Set<SObjectField> stage = new Set<SObjectField>{ Opportunity.StageName };
-      unif.IWork work = GuideApp.s.work();
+      inj.IWork work = GuideApp.s.work();
       for (Opportunity row : (List<Opportunity>) base().getChangedRecords(oldMap, stage)) {
         if (row.StageName == 'Closed Won') {
           work.track(new Task(WhatId = row.Id, Subject = 'Send the welcome pack'));
@@ -94,13 +94,13 @@ global class GuideExamples {
 
   // A trigger handler that is not a domain
 
-  public class AuditTrail implements unif.ITriggered {
+  public class AuditTrail implements inj.ITriggered {
     public void handleTrigger(
       TriggerOperation operation,
       List<SObject> newRecords,
       List<SObject> oldRecords,
       Map<Id, SObject> oldMap,
-      unif.IModel model
+      inj.IModel model
     ) {
       // called for every operation the trigger is declared for
     }
@@ -123,14 +123,14 @@ global class GuideExamples {
   // Code that queries through the application it is given, so a test can hand it a mock
 
   public class AccountReview {
-    private unif.IApplication app;
+    private inj.IApplication app;
 
-    public AccountReview(unif.IApplication app) {
+    public AccountReview(inj.IApplication app) {
       this.app = app;
     }
 
     public List<Account> largeAccounts() {
-      unif.IQuery large = app.qf().make(Account.SObjectType);
+      inj.IQuery large = app.qf().make(Account.SObjectType);
       large.addCondition(app.gt(Account.AnnualRevenue, 1000000));
       return (List<Account>) large.run();
     }
@@ -139,7 +139,7 @@ global class GuideExamples {
   // A batch whose execute step starts another batch, which the platform does not allow directly.
   // The second batch leaves a record behind so a run can be checked afterwards.
 
-  public class StartsABatch implements unif.IBatchIterableHandler {
+  public class StartsABatch implements inj.IBatchIterableHandler {
     private String mark;
 
     public StartsABatch(String mark) {
@@ -151,7 +151,7 @@ global class GuideExamples {
     }
 
     public void batchExecute(Iterable<Object> scope) {
-      unif.Async.iterable(new LeavesAMark(mark)).run();
+      inj.Async.iterable(new LeavesAMark(mark)).run();
     }
 
     public void batchFinish() {
@@ -162,7 +162,7 @@ global class GuideExamples {
     }
   }
 
-  public class LeavesAMark implements unif.IBatchIterableHandler {
+  public class LeavesAMark implements inj.IBatchIterableHandler {
     private String mark;
 
     public LeavesAMark(String mark) {

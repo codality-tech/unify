@@ -31,7 +31,7 @@ Demo.title('The failed rows, as a file to correct and send again');
 Demo.say(done.failuresCsv);
 
 Demo.title('What is in the org now');
-unif.IQuery children = App.s.model(Rollup_Sample_Child__c.SObjectType).query();
+inj.IQuery children = App.s.model(Rollup_Sample_Child__c.SObjectType).query();
 children.fields().add(new Set<SObjectField>{ Rollup_Sample_Child__c.Name, Rollup_Sample_Child__c.Amount__c, Rollup_Sample_Child__c.Due__c, Rollup_Sample_Child__c.Status__c });
 children.fields().add('Parent__r', new Set<SObjectField>{ Rollup_Sample_Parent__c.Name });
 children.filters().add(App.s.iin(Rollup_Sample_Child__c.Name, new Set<String>{ 'North item 2', 'Brand new item' }));

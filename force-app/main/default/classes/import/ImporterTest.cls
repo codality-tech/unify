@@ -141,7 +141,7 @@ private class ImporterTest {
     ImportFormats.use(new List<ImportFormat>{ people() });
 
     ImportResult first = Importer.load('People', 'Email,Surname,Note\ngood@imp.example.com,Fine,ok\nbad@imp.example.com,,"said ""no"""\n');
-    unif.CsvUtil.Table file = unif.CsvUtil.read(first.failuresCsv);
+    inj.CsvUtil.Table file = inj.CsvUtil.read(first.failuresCsv);
 
     Assert.areEqual(new List<String>{ 'Email', 'Surname', 'Note', 'Error' }, file.header);
     Assert.areEqual(1, file.rows.size());
@@ -149,7 +149,7 @@ private class ImporterTest {
 
     // Sent again uncorrected, the file is read as before and its Error column is brought up to date.
     ImportResult second = Importer.load('People', first.failuresCsv);
-    unif.CsvUtil.Table again = unif.CsvUtil.read(second.failuresCsv);
+    inj.CsvUtil.Table again = inj.CsvUtil.read(second.failuresCsv);
 
     Assert.areEqual(new List<String>{ 'Note', 'Error' }, second.ignored);
     Assert.areEqual(file.header, again.header);
@@ -238,7 +238,7 @@ private class ImporterTest {
     );
     Contact ada = new Contact(LastName = 'Old', Email = 'ada@imp.example.com');
     insert ada;
-    Id gone = unif.IdUtil.generateId(Contact.SObjectType);
+    Id gone = inj.IdUtil.generateId(Contact.SObjectType);
     String idLabel = Contact.Id.getDescribe().getLabel();
 
     ImportResult result = Importer.load('ById', 'Id,Surname\n' + String.valueOf(ada.Id).left(15) + ',Lovelace\n,Hopper\n' + gone + ',Ghost\nnonsense,Odd\n');

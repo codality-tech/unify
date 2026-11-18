@@ -1,7 +1,7 @@
 public class App {
-    public static unif.IApplication s{private set; get{
+    public static inj.IApplication s{private set; get{
         if (s == null){
-            s = unif.Application.make(
+            s = inj.Application.make(
                 new Scheme64(), // Your scheme - injected throughout entire framework
                 new Map<Type, Type>{
                     ExampleService.IService.class => ExampleService.class
@@ -22,9 +22,9 @@ public class App {
         }
         return s;
     }}    
-    public static unif.IApplication b{private set; get{
+    public static inj.IApplication b{private set; get{
         if (b == null){
-            b = unif.Application.make(
+            b = inj.Application.make(
                 new Scheme64(), // Your scheme - injected throughout entire framework
                 null,
                 null, // Optional: your queries

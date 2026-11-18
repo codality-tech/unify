@@ -65,9 +65,9 @@ public class ClonePlan {
     public CloneStep step { get; private set; }
     public Node above { get; private set; }
     public List<Node> children { get; private set; }
-    public unif.IModel model { get; private set; }
+    public inj.IModel model { get; private set; }
     public SObjectField lookup { get; private set; }
-    public unif.ICondition filter { get; private set; }
+    public inj.ICondition filter { get; private set; }
     public Set<SObjectField> leftOut { get; private set; }
     public Map<SObjectField, Object> values { get; private set; }
     private Set<SObjectField> copied;
@@ -147,18 +147,18 @@ public class ClonePlan {
         return;
       }
       try {
-        unif.IConditionCompilation compiled = model.compileCondition(model.parseCondition(step.values));
+        inj.IConditionCompilation compiled = model.compileCondition(model.parseCondition(step.values));
         // A negated group shows in the markup; a negated comparison shows only in its own SOQL.
         Boolean plain = !compiled.getMarkup().contains(' OR ') && !compiled.getMarkup().contains('NOT ');
-        for (unif.IFieldCondition setting : compiled.getFieldConditions()) {
-          Boolean assigns = setting.operator() == unif.Enums.Comparator.EQ && !setting.toSoql().startsWith('(NOT ');
+        for (inj.IFieldCondition setting : compiled.getFieldConditions()) {
+          Boolean assigns = setting.operator() == inj.Enums.Comparator.EQ && !setting.toSoql().startsWith('(NOT ');
           plain = plain && assigns && setting.path().size() == 1;
         }
         if (!plain) {
           wrong.add('values must be fields of ' + model.name() + ' set with = and joined by AND');
           return;
         }
-        for (unif.IFieldCondition setting : compiled.getFieldConditions()) {
+        for (inj.IFieldCondition setting : compiled.getFieldConditions()) {
           SObjectField field = setting.path().terminus();
           Object fitted = fit(field, setting.value());
           model.token().newSObject().put(field, fitted);

@@ -14,7 +14,7 @@ private class RollupRuleTest {
     Assert.areEqual('Open_Amount', rule.name);
     Assert.areEqual('Rollup_Sample_Child__c', rule.childObject);
     Assert.areEqual('Parent__c', rule.lookupField);
-    Assert.areEqual(unif.Enums.Aggregate.SUM, rule.operation);
+    Assert.areEqual(inj.Enums.Aggregate.SUM, rule.operation);
     Assert.areEqual('Amount__c', rule.sourceField);
     Assert.areEqual('Status__c != \'Closed\'', rule.filter);
     Assert.areEqual('Open_Amount__c', rule.parentField);
@@ -28,13 +28,13 @@ private class RollupRuleTest {
     RollupRule rule = new RollupRule('Any');
     SObjectField amount = Rollup_Sample_Child__c.Amount__c;
 
-    Assert.areEqual(unif.Enums.Aggregate.COUNT, rule.count().operation);
+    Assert.areEqual(inj.Enums.Aggregate.COUNT, rule.count().operation);
     Assert.isNull(rule.sourceField, 'a plain count reads no field');
     Assert.areEqual('Amount__c', rule.count(amount).sourceField);
-    Assert.areEqual(unif.Enums.Aggregate.COUNT_DISTINCT, rule.countDistinct(amount).operation);
-    Assert.areEqual(unif.Enums.Aggregate.AVG, rule.avg(amount).operation);
-    Assert.areEqual(unif.Enums.Aggregate.MIN, rule.min(amount).operation);
-    Assert.areEqual(unif.Enums.Aggregate.MAX, rule.max(amount).operation);
+    Assert.areEqual(inj.Enums.Aggregate.COUNT_DISTINCT, rule.countDistinct(amount).operation);
+    Assert.areEqual(inj.Enums.Aggregate.AVG, rule.avg(amount).operation);
+    Assert.areEqual(inj.Enums.Aggregate.MIN, rule.min(amount).operation);
+    Assert.areEqual(inj.Enums.Aggregate.MAX, rule.max(amount).operation);
     Assert.areEqual(RollupRule.Timing.IMMEDIATE, rule.runs, 'immediate unless queued');
     Assert.isFalse(rule.guardsDelete);
   }
@@ -60,7 +60,7 @@ private class RollupRuleTest {
     Assert.areEqual('Opportunity', rule.childObject);
     Assert.areEqual('AccountId', rule.lookupField);
     Assert.areEqual('AnnualRevenue', rule.parentField);
-    Assert.areEqual(unif.Enums.Aggregate.SUM, rule.operation);
+    Assert.areEqual(inj.Enums.Aggregate.SUM, rule.operation);
     Assert.areEqual('Amount', rule.sourceField);
     Assert.areEqual('IsWon = TRUE', rule.filter);
     Assert.areEqual(RollupRule.Timing.QUEUED, rule.runs);

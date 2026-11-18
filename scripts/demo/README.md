@@ -53,8 +53,8 @@ These are the pieces the scripts are made of. All of them run as written in `pla
 
 ```apex
 // A query
-unif.IQuery q = App.s.model(Account.SObjectType).query();          // selects Id until told otherwise
-unif.IQuery q = App.s.qf().make(Account.SObjectType);              // or: every sensible field by default
+inj.IQuery q = App.s.model(Account.SObjectType).query();          // selects Id until told otherwise
+inj.IQuery q = App.s.qf().make(Account.SObjectType);              // or: every sensible field by default
 q.fields().add(new Set<SObjectField>{ Account.Name, Account.Industry });
 q.fields().add('Owner', new Set<SObjectField>{ User.Name });       // through a lookup
 q.filters().add(App.s.eq(Account.Site, 'Injectify demo'));
@@ -69,13 +69,13 @@ App.s.eq(Account.Rating, 'Hot')           // also ne, gt, ge, lt, le
 App.s.lk(Account.Name, 'North%')          // LIKE
 App.s.iin(Account.Industry, new Set<String>{ 'Energy', 'Banking' })
 App.s.eq(new List<SObjectField>{ Contact.AccountId, Account.Rating }, 'Hot')    // a field on the parent
-App.s.all(new List<unif.ICondition>{ a, b })                                    // AND; any(...) is OR, neg(x) is NOT
+App.s.all(new List<inj.ICondition>{ a, b })                                    // AND; any(...) is OR, neg(x) is NOT
 App.s.model(Account.SObjectType).parseCondition('Rating = \'Hot\' OR AnnualRevenue > 5000000')
 condition.evaluate(record)                                                      // the same answer, no query
 condition.prepend(App.s.reference(Contact.AccountId))                           // the same rule, asked of contacts
 
 // Saving
-unif.IWork work = App.s.work();
+inj.IWork work = App.s.work();
 work.track(record);                                   // no Id: insert. Id: update
 work.track(child, Contact.AccountId, parent);         // both saved, the lookup filled in
 work.purge(records);                                  // delete, children first

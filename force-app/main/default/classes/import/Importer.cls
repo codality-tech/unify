@@ -43,10 +43,10 @@ public with sharing class Importer {
    */
   public static ImportResult run(String formatName, String csvText, Integer rowsBefore, Boolean save) {
     ImportPlan plan = ImportFormats.named(formatName);
-    unif.CsvUtil.Table table;
+    inj.CsvUtil.Table table;
     try {
-      table = unif.CsvUtil.read(csvText);
-    } catch (unif.CsvUtil.GeneralException unreadable) {
+      table = inj.CsvUtil.read(csvText);
+    } catch (inj.CsvUtil.GeneralException unreadable) {
       throw new ImportException('The file cannot be read: ' + unreadable.getMessage());
     }
     if (table.header.isEmpty()) {
@@ -84,7 +84,7 @@ public with sharing class Importer {
   private with sharing class Loading {
     final ImportPlan plan;
     final ImportPlan.Layout layout;
-    final unif.CsvUtil.Table table;
+    final inj.CsvUtil.Table table;
     final List<ImportPlan.Slot> slots;
     final DescribeSObjectResult shape;
     final List<Entry> entries = new List<Entry>();
@@ -93,7 +93,7 @@ public with sharing class Importer {
     List<Boolean> filledOnNew;
     List<Boolean> filledOnExisting;
 
-    Loading(ImportPlan plan, ImportPlan.Layout layout, unif.CsvUtil.Table table, Integer rowsBefore) {
+    Loading(ImportPlan plan, ImportPlan.Layout layout, inj.CsvUtil.Table table, Integer rowsBefore) {
       this.plan = plan;
       this.layout = layout;
       this.table = table;
@@ -123,7 +123,7 @@ public with sharing class Importer {
     private void readRows() {
       for (Integer index = 0; index < table.rows.size(); index++) {
         List<String> cells = table.rows[index];
-        if (unif.CsvUtil.isBlank(cells)) {
+        if (inj.CsvUtil.isBlank(cells)) {
           continue;
         }
         Entry entry = new Entry(rowsBefore + table.rowNumber(index), cells);
@@ -154,8 +154,8 @@ public with sharing class Importer {
         entry.lookups.put(at, text);
       } else {
         try {
-          entry.values.put(at, unif.FieldUtil.fromText(slot.shape, text));
-        } catch (unif.FieldUtil.GeneralException unreadable) {
+          entry.values.put(at, inj.FieldUtil.fromText(slot.shape, text));
+        } catch (inj.FieldUtil.GeneralException unreadable) {
           entry.problems.add(slot.title() + ': ' + unreadable.getMessage());
         }
       }
@@ -197,8 +197,8 @@ public with sharing class Importer {
     }
 
     // The records of an object the person can see, by the value one field holds, in lower case.
-    private Map<String, List<Id>> idsByValue(unif.IModel model, SObjectField field, Set<String> values) {
-      unif.IQuery reading = model.query().withSharing(true);
+    private Map<String, List<Id>> idsByValue(inj.IModel model, SObjectField field, Set<String> values) {
+      inj.IQuery reading = model.query().withSharing(true);
       reading.fields().add(new Set<SObjectField>{ model.fieldMap().get('Id'), field });
       reading.addCondition(App.s.iin(field, values));
       Map<String, List<Id>> found = new Map<String, List<Id>>();
@@ -338,7 +338,7 @@ public with sharing class Importer {
       Savepoint before = whole ? Database.setSavepoint() : null;
       // The framework's unit of work, as the person and with partial success: it inserts the new
       // records in one statement, updates the others in one, and says which it could not save.
-      unif.IWork work = App.s.work().withSharing(true);
+      inj.IWork work = App.s.work().withSharing(true);
       work.options().optAllOrNone = false;
       for (Entry entry : good) {
         work.track(entry.record);
@@ -346,7 +346,7 @@ public with sharing class Importer {
       work.apply();
       Boolean allSaved = work.failures().isEmpty();
       for (Entry entry : good) {
-        unif.IWorkFailure failure = allSaved ? null : work.failureOf(entry.record);
+        inj.IWorkFailure failure = allSaved ? null : work.failureOf(entry.record);
         if (failure != null) {
           entry.problems.add(failure.getMessage());
         }
@@ -421,7 +421,7 @@ public with sharing class Importer {
         line.put(errorTitle, String.join(entry.problems, '; '));
         lines.add(line);
       }
-      return unif.CsvUtil.toCsv(titles, lines);
+      return inj.CsvUtil.toCsv(titles, lines);
     }
 
     private String quoted(String text) {

@@ -1,9 +1,9 @@
 /** The entry point the guides call App, with the guides' example classes registered. */
 public class GuideApp {
-  public static unif.IApplication s {
+  public static inj.IApplication s {
     get {
       if (s == null) {
-        s = unif.Application.make(
+        s = inj.Application.make(
           null, // scheme: null uses the default
           new Map<Type, Type>{ GuideExamples.IInvoicing.class => GuideExamples.Invoicing.class }, // services
           new Map<Type, Type>{ Account.class => GuideExamples.AccountQuery.class, Case.class => GuideExamples.OpenCaseQuery.class }, // queries

@@ -1,3 +1,3 @@
-global interface IAccounts extends unif.IDomain{
+global interface IAccounts extends inj.IDomain{
     List<Account> items();
 }

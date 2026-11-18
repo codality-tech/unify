@@ -35,7 +35,7 @@ private class GuideWorkTest {
 
   @IsTest
   static void nullsAreIgnoredAndAnEmptyWorkDoesNothing() {
-    unif.IWork idle = App.s.work();
+    inj.IWork idle = App.s.work();
     idle.track((Account) null).track((List<Account>) null).track(new List<Account>()).purge((Account) null).purge((List<Account>) null);
 
     Assert.isFalse(idle.hasWork());
@@ -47,7 +47,7 @@ private class GuideWorkTest {
   @IsTest
   static void aWorkIsAppliedOnce() {
     quietAccountTriggers();
-    unif.IWork work = App.s.work().track(new Account(Name = 'Once'));
+    inj.IWork work = App.s.work().track(new Account(Name = 'Once'));
     work.apply();
 
     try {
@@ -223,7 +223,7 @@ private class GuideWorkTest {
     Rollup_Sample_Parent__c renamed = new Rollup_Sample_Parent__c(Name = 'New name', Code__c = 'N-1');
     Rollup_Sample_Parent__c tooLong = new Rollup_Sample_Parent__c(Name = 'x'.repeat(81), Code__c = 'L-1');
     Rollup_Sample_Parent__c added = new Rollup_Sample_Parent__c(Name = 'South', Code__c = 'S-1');
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().optAllOrNone = false;
 
     work.track(new List<Rollup_Sample_Parent__c>{ renamed, tooLong, added }, Rollup_Sample_Parent__c.Code__c).apply();
@@ -272,13 +272,13 @@ private class GuideWorkTest {
   static void withPartialSuccessAnExternalIdThatMatchesNothingIsListed() {
     quietSampleTriggers();
     Rollup_Sample_Child__c child = new Rollup_Sample_Child__c(Name = 'Orphan');
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().optAllOrNone = false;
 
     work.track(child, Rollup_Sample_Child__c.Parent__c, Rollup_Sample_Parent__c.Code__c, 'NOBODY').apply();
 
     Assert.isNotNull(child.Id, 'the child was inserted before its lookup was set');
-    unif.IWorkFailure failure = work.failureOf(child);
+    inj.IWorkFailure failure = work.failureOf(child);
     Assert.isNotNull(failure, 'and the update that could not set the lookup is listed');
     Assert.isTrue(failure.getMessage().contains('not found for field Code__c'), failure.getMessage());
   }
@@ -299,7 +299,7 @@ private class GuideWorkTest {
     Account target = new Account(Name = 'Target');
     insert target;
 
-    unif.IWork merging = App.s.work();
+    inj.IWork merging = App.s.work();
     merging.track(new Account(Id = target.Id, Rating = 'Hot'));
     merging.track(new Account(Id = target.Id, Industry = 'Energy'));
     Integer before = Limits.getDmlStatements();
@@ -309,7 +309,7 @@ private class GuideWorkTest {
     Assert.areEqual('Hot', saved.Rating);
     Assert.areEqual('Energy', saved.Industry);
 
-    unif.IWork replacing = App.s.work();
+    inj.IWork replacing = App.s.work();
     replacing.track(new Account(Id = target.Id, Rating = 'Cold'));
     replacing.track(new Account(Id = target.Id, Rating = 'Warm'));
     replacing.apply();
@@ -323,7 +323,7 @@ private class GuideWorkTest {
 
   @IsTest
   static void dmlOptionsApplyToInserts() {
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().duplicateRuleHeader.allowSave = true;
     work.options().assignmentRuleHeader.useDefaultRule = true;
     Lead prospect = new Lead(LastName = 'Lovelace', Company = 'Analytical Engines');
@@ -337,7 +337,7 @@ private class GuideWorkTest {
   @IsTest
   static void partialSuccessSavesWhatItCanAndListsTheRest() {
     quietAccountTriggers();
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().optAllOrNone = false;
     Account good = new Account(Name = 'Good');
     Account nameless = new Account();
@@ -352,12 +352,12 @@ private class GuideWorkTest {
     Assert.areEqual(2, work.failures().size());
     Assert.isNull(work.failureOf(good), 'null when the record was saved');
 
-    unif.IWorkFailure refused = work.failureOf(nameless);
+    inj.IWorkFailure refused = work.failureOf(nameless);
     Assert.isTrue(refused.getRecord() === nameless, 'the instance that was tracked');
     Assert.areEqual(StatusCode.REQUIRED_FIELD_MISSING, refused.getErrors()[0].getStatusCode());
     Assert.isTrue(refused.getMessage().contains('Name'), refused.getMessage());
 
-    unif.IWorkFailure held = work.failureOf(child);
+    inj.IWorkFailure held = work.failureOf(child);
     Assert.areEqual('Not saved: the Account it is related to was not saved', held.getMessage());
     Assert.isTrue(held.getErrors().isEmpty());
   }
@@ -368,7 +368,7 @@ private class GuideWorkTest {
     Contact existing = new Contact(LastName = 'Before');
     insert existing;
     existing.LastName = 'After';
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().optAllOrNone = false;
 
     work.track(existing, Contact.AccountId, new Account()).apply();
@@ -381,7 +381,7 @@ private class GuideWorkTest {
   static void everyRecordOrNoneWithEveryFailureListed() {
     quietAccountTriggers();
     Savepoint before = Database.setSavepoint();
-    unif.IWork work = App.s.work();
+    inj.IWork work = App.s.work();
     work.options().optAllOrNone = false;
 
     work.track(new Account(Name = 'Good')).track(new Account()).track(new Account()).apply();
@@ -396,7 +396,7 @@ private class GuideWorkTest {
   @IsTest
   static void withAllOrNoneAFailureThrowsAndNothingIsListed() {
     quietAccountTriggers();
-    unif.IWork work = App.s.work().track(new Account());
+    inj.IWork work = App.s.work().track(new Account());
 
     try {
       work.apply();
@@ -415,7 +415,7 @@ private class GuideWorkTest {
     note.setPlainTextBody('Your order is on its way.');
     Account company = new Account(Name = 'Acme');
 
-    unif.IWork work = App.s.work().track(company).track(note);
+    inj.IWork work = App.s.work().track(company).track(note);
     Assert.isTrue(work.hasWork());
     work.apply();
 

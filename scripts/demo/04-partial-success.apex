@@ -5,7 +5,7 @@ Savepoint before = Database.setSavepoint();
 Demo.quietExamples();
 
 Demo.title('Three accounts, one of them with no name, each with a contact');
-unif.IWork work = App.s.work();
+inj.IWork work = App.s.work();
 work.options().optAllOrNone = false;
 Account good = new Account(Name = 'Good Co');
 Account nameless = new Account(Industry = 'Energy');

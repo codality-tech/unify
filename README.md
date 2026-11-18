@@ -138,7 +138,7 @@ When a transaction is running short of queries, an immediate rule is queued inst
 
 - `Rollups.recalculate(parentIds)` recalculates every rule for those parents, now.
 - `Rollups.sweep()` recalculates every rule over every parent: one batch per parent object, chained. Run it after adding a rule.
-- `unif.Async.schedulable(new RollupJobs.Nightly()).run()` schedules a sweep every night at two, to correct what no trigger saw.
+- `inj.Async.schedulable(new RollupJobs.Nightly()).run()` schedules a sweep every night at two, to correct what no trigger saw.
 
 ### What the framework does here
 
@@ -148,13 +148,13 @@ When a transaction is running short of queries, an immediate rule is queued inst
 | The same filter deciding, in a trigger, whether a changed child matters | `condition.evaluate(record)`, on the record as it is now and as it was |
 | To know which fields a filter reads, so other changes are ignored | `model.compileCondition(filter).getPaths()` |
 | One grouped query that serves several rules | `model.aggregateQuery()` with a function per rule, grouped by the lookup |
-| The function a rule names, chosen at run time | `aggregate(unif.Enums.Aggregate, field)` |
+| The function a rule names, chosen at run time | `aggregate(inj.Enums.Aggregate, field)` |
 | Two saves under one parent taking turns | `query.forUpdate(true)` on the parents, before the children are totalled |
 | The children whose watched fields changed | `domain.getChangedRecords(oldMap, fields)` |
 | Parents written in system mode, only where a value differs | `work().track(record).apply()` |
-| A recalculation in a job of its own, batches one after another, a schedule | `unif.Async.queueable`, `queryable(...).then(...)`, `schedulable` |
+| A recalculation in a job of its own, batches one after another, a schedule | `inj.Async.queueable`, `queryable(...).then(...)`, `schedulable` |
 | Totals that cover records the user cannot see | An application of its own, built on a scheme declared `without sharing` |
-| A trigger handler any object can use | A `unif.BaseDomain` registered in the trigger registry |
+| A trigger handler any object can use | A `inj.BaseDomain` registered in the trigger registry |
 
 ### How it is put together
 
@@ -397,10 +397,10 @@ A row matched on anything but an Id is matched among the records the person can 
 | Related records found by any field, as the user | `model.query().withSharing(true)` with `iin(field, values)`: one query per column |
 | Rows matched against existing records, as the user | The same query on the format's match field |
 | A typed list to save | `model.spawnRecordList()` |
-| The file as a header and rows, whatever its separator and quoting | `unif.CsvUtil.read(text)` |
-| The text of a cell as the value its field takes, or a message a person can act on | `unif.FieldUtil.fromText(describe, text)` |
+| The file as a header and rows, whatever its separator and quoting | `inj.CsvUtil.read(text)` |
+| The text of a cell as the value its field takes, or a message a person can act on | `inj.FieldUtil.fromText(describe, text)` |
 | The rows saved as the user, each passing or failing by itself | `App.s.work().withSharing(true)` with `options().optAllOrNone = false`, then `work.failureOf(record)` |
-| The failed rows as a file | `unif.CsvUtil.toCsv(header, rows)` |
+| The failed rows as a file | `inj.CsvUtil.toCsv(header, rows)` |
 
 Reading CSV, turning text into values and reporting which records failed were not in the framework when Import was first built. Import did all three itself; building it showed the gaps, and package 0.2.7-5 closed them.
 

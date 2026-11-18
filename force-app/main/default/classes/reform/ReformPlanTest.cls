@@ -61,7 +61,7 @@ private class ReformPlanTest {
     Assert.areEqual(new Set<SObjectField>{ Opportunity.AccountId, Opportunity.Amount }, plan.fieldsRead);
     Assert.areEqual(new Set<SObjectField>{ Opportunity.AccountId }, plan.parentPaths.keySet());
     Set<String> fromTheAccount = new Set<String>();
-    for (unif.IPath path : plan.parentPaths.get(Opportunity.AccountId)) {
+    for (inj.IPath path : plan.parentPaths.get(Opportunity.AccountId)) {
       Assert.areEqual(Account.SObjectType, path.source().token(), 'seen from the parent');
       fromTheAccount.add(path.name());
     }
@@ -72,8 +72,8 @@ private class ReformPlanTest {
     Assert.areEqual('Account owner', plan.columns[1].label);
 
     Assert.areEqual(2, plan.rowConditions.size(), 'the filter and the fixed value');
-    unif.IQuery listed = plan.model.query();
-    for (unif.ICondition condition : plan.rowConditions) {
+    inj.IQuery listed = plan.model.query();
+    for (inj.ICondition condition : plan.rowConditions) {
       listed.addCondition(condition);
     }
     String soql = listed.toSoql();

@@ -1,5 +1,5 @@
 /** Stored blueprints, with every field a definition is read from. */
-global class ReformBlueprintQuery extends unif.BaseQuery {
+global class ReformBlueprintQuery extends inj.BaseQuery {
   global ReformBlueprintQuery() {
     super();
   }

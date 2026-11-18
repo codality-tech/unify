@@ -8,7 +8,7 @@
  */
 public class ImportPlan {
   public ImportFormat format { get; private set; }
-  public unif.IModel model { get; private set; }
+  public inj.IModel model { get; private set; }
   public SObjectField matchOn { get; private set; }
   public List<String> problems { get; private set; }
   private List<Slot> slots;
@@ -26,7 +26,7 @@ public class ImportPlan {
     public Boolean required { get; private set; }
     public SObjectField field { get; private set; }
     public DescribeFieldResult shape { get; private set; }
-    public unif.IModel related { get; private set; }
+    public inj.IModel related { get; private set; }
     public SObjectField relatedBy { get; private set; }
     public DescribeFieldResult relatedShape { get; private set; }
     public Integer position { get; private set; }
@@ -195,7 +195,7 @@ public class ImportPlan {
     }
     if (slot.shape.isCalculated() || slot.shape.isAutoNumber()) {
       wrong.add(slot.shape.getName() + ' is worked out by the org and cannot be filled in');
-    } else if (!unif.FieldUtil.takesText(slot.shape)) {
+    } else if (!inj.FieldUtil.takesText(slot.shape)) {
       wrong.add(slot.shape.getName() + ' cannot be filled in from text');
     }
     if (String.isNotBlank(relatedField)) {
@@ -211,7 +211,7 @@ public class ImportPlan {
     } else if (targets.size() > 1) {
       wrong.add(slot.shape.getName() + ' can point at more than one object, so its cells must hold Ids');
     } else {
-      unif.IModel target = App.s.model(targets[0]);
+      inj.IModel target = App.s.model(targets[0]);
       SObjectField finder = target.fieldMap().get(relatedField);
       if (finder == null) {
         wrong.add('unknown field ' + target.name() + '.' + relatedField);
@@ -227,12 +227,12 @@ public class ImportPlan {
 
   // A default is written by an admin once, so a bad one is the format's mistake, not a row's.
   private void checkFallback(Slot slot, List<String> wrong) {
-    if (String.isBlank(slot.fallback) || slot.related != null || !unif.FieldUtil.takesText(slot.shape)) {
+    if (String.isBlank(slot.fallback) || slot.related != null || !inj.FieldUtil.takesText(slot.shape)) {
       return;
     }
     try {
-      unif.FieldUtil.fromText(slot.shape, slot.fallback);
-    } catch (unif.FieldUtil.GeneralException unreadable) {
+      inj.FieldUtil.fromText(slot.shape, slot.fallback);
+    } catch (inj.FieldUtil.GeneralException unreadable) {
       wrong.add('default ' + unreadable.getMessage());
     }
   }
@@ -241,7 +241,7 @@ public class ImportPlan {
     return shape.getSoapType() == SoapType.STRING || shape.getSoapType() == SoapType.ID;
   }
 
-  private static DescribeFieldResult shapeOf(unif.IModel owner, SObjectField field) {
+  private static DescribeFieldResult shapeOf(inj.IModel owner, SObjectField field) {
     return owner.scheme().getFieldDescribe(field);
   }
 

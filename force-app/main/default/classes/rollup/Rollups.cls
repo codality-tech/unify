@@ -35,7 +35,7 @@ public without sharing class Rollups {
    * Call after child records are inserted, updated, deleted or undeleted. `previous` is their
    * earlier state on update, and null otherwise.
    */
-  public static void changed(unif.IDomain children, Map<Id, SObject> previous) {
+  public static void changed(inj.IDomain children, Map<Id, SObject> previous) {
     Map<String, Set<Id>> now = new Map<String, Set<Id>>();
     Map<String, Set<Id>> later = new Map<String, Set<Id>>();
     for (RollupPlan plan : RollupRules.forChild(children.source().token())) {
@@ -83,10 +83,10 @@ public without sharing class Rollups {
    * another. Use it after adding a rule, or on a schedule to correct what no trigger saw (merged
    * records, data loaded with triggers off). Returns the first job, or null when there are no rules.
    */
-  public static unif.IJob sweep() {
-    unif.IJob first;
+  public static inj.IJob sweep() {
+    inj.IJob first;
     for (String parentObject : RollupRules.parentObjects()) {
-      unif.IJob next = unif.Async.queryable(new RollupJobs.Sweep(parentObject));
+      inj.IJob next = inj.Async.queryable(new RollupJobs.Sweep(parentObject));
       first = first == null ? next : first.then(next);
     }
     return first?.run();
@@ -96,7 +96,7 @@ public without sharing class Rollups {
    * Call before parent records are deleted. A rule that guards deletion refuses the delete while
    * the parent holds a result above zero (or, for dates and text, any result).
    */
-  public static void guardDelete(unif.IDomain parents) {
+  public static void guardDelete(inj.IDomain parents) {
     for (RollupPlan plan : RollupRules.forParent(parents.source().token())) {
       if (plan.rule.guardsDelete != true) {
         continue;
@@ -115,7 +115,7 @@ public without sharing class Rollups {
   // The parents whose result a change to these children can alter. A child counts towards the
   // parent it points at now and the one it pointed at before, in each case only if it may be among
   // the records the rule counts.
-  private static Set<Id> touched(RollupPlan plan, unif.IDomain children, Map<Id, SObject> previous) {
+  private static Set<Id> touched(RollupPlan plan, inj.IDomain children, Map<Id, SObject> previous) {
     Set<Id> parents = new Set<Id>();
     List<SObject> relevant = previous == null ? children.records() : children.getChangedRecords(previous, plan.watched);
     for (SObject child : relevant) {
@@ -136,7 +136,7 @@ public without sharing class Rollups {
   // start another job, in which case the caller recalculates now.
   private static Boolean enqueue(Map<String, Set<Id>> parentsByRule) {
     // Inline jobs (a test's switch) have finished by the time later changes arrive, so nothing is waiting.
-    Boolean inline = Test.isRunningTest() && unif.Async.synchronousInTests == true;
+    Boolean inline = Test.isRunningTest() && inj.Async.synchronousInTests == true;
     Map<String, Set<Id>> fresh = new Map<String, Set<Id>>();
     for (String ruleName : parentsByRule.keySet()) {
       Set<Id> parents = parentsByRule.get(ruleName).clone();
@@ -159,7 +159,7 @@ public without sharing class Rollups {
       }
       waiting.get(ruleName).addAll(fresh.get(ruleName));
     }
-    unif.Async.queueable(new RollupJobs.Recalculate(fresh)).run();
+    inj.Async.queueable(new RollupJobs.Recalculate(fresh)).run();
     return true;
   }
 
@@ -187,7 +187,7 @@ public without sharing class Rollups {
       String lookupName = lead.child.scheme().getFieldDescribe(lead.lookup).getName();
       Map<Id, AggregateResult> byParent = new Map<Id, AggregateResult>();
       for (Set<Id> portion : portions(parents)) {
-        unif.IAggregateQuery tally = lead.child.aggregateQuery();
+        inj.IAggregateQuery tally = lead.child.aggregateQuery();
         tally.groupBys().add(RollupScheme.app.path(lead.lookup));
         Set<String> placed = new Set<String>();
         for (RollupPlan plan : plans) {
@@ -272,7 +272,7 @@ public without sharing class Rollups {
       if (changes.isEmpty()) {
         return;
       }
-      unif.IWork work = RollupScheme.app.work();
+      inj.IWork work = RollupScheme.app.work();
       for (SObject change : changes.values()) {
         work.track(change);
       }
@@ -283,7 +283,7 @@ public without sharing class Rollups {
     // They are locked, and read before the children are totalled, so that two saves under one
     // parent take turns: the second waits here, then totals what the first has saved.
     private Map<Id, SObject> presentValues() {
-      Map<SObjectType, unif.IModel> models = new Map<SObjectType, unif.IModel>();
+      Map<SObjectType, inj.IModel> models = new Map<SObjectType, inj.IModel>();
       Map<SObjectType, Set<SObjectField>> fields = new Map<SObjectType, Set<SObjectField>>();
       Map<SObjectType, Set<Id>> ids = new Map<SObjectType, Set<Id>>();
       for (SharedQuery shared : queries.values()) {
@@ -300,7 +300,7 @@ public without sharing class Rollups {
       }
       Map<Id, SObject> held = new Map<Id, SObject>();
       for (SObjectType parentType : models.keySet()) {
-        unif.IQuery reading = models.get(parentType).query().forUpdate(true);
+        inj.IQuery reading = models.get(parentType).query().forUpdate(true);
         reading.fields().add(fields.get(parentType));
         reading.addCondition(RollupScheme.app.condId(ids.get(parentType)));
         held.putAll(reading.run());

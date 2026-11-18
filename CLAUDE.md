@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 **Unify**: solutions built with the Injectify framework, and the framework's subscriber test. Everything here compiles and runs against the installed package through its public API only. `README.md` describes the solutions: Reform (forms and tables from blueprints), Rollup (totals over lookups, from metadata rules), Clone (a record copied with the records beneath it, from metadata plans) and Import (CSV files loaded into records, from metadata formats).
 
-The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `unif`.
+The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `inj`.
 
 | Need | Where |
 | --- | --- |
@@ -40,24 +40,24 @@ force-app/main/default/
 
 These are all proven by code in this repository.
 
-- Prefix every package type: `unif.IQuery`, `unif.BaseDomain`.
+- Prefix every package type: `inj.IQuery`, `inj.BaseDomain`.
 - Registry keys are `Account.class`, not `Account.SObjectType`.
 - Query and domain classes are `global class`, with a `global` no-argument constructor. Hook overrides (`onBeforeUpsert`, `getDefaultFields`) can be `public override`.
 - Reach inherited behaviour through `base()`: `base().records()`, `base().getChangedRecords(...)`.
 - A trigger body is one line: `App.s.tf().execute();`
-- Of the framework's exceptions only `unif.Application.FactoryException` and the utility classes' exceptions are global. Catch the others as `Exception`.
-- The framework's utility classes are in the package: `unif.RandomUtil`, `unif.FieldUtil`, `unif.IdUtil` and the rest. Do not copy them here.
+- Of the framework's exceptions only `inj.Application.FactoryException` and the utility classes' exceptions are global. Catch the others as `Exception`.
+- The framework's utility classes are in the package: `inj.RandomUtil`, `inj.FieldUtil`, `inj.IdUtil` and the rest. Do not copy them here.
 - A query made through the framework is run by the application's scheme. A scheme with a sharing keyword of its own decides whose records are seen; one without takes the sharing of the class that built the query (`GuideAccessTest`). `RollupScheme` is the example of a scheme declared `without sharing`.
 - Text kept in a custom metadata field loses the spaces at its ends, and `getAll()` cuts a long text area off at 255 characters.
 - Apex names are case-insensitive. A local `account` hides `Account`, a field `kind` hides an enum `Kind`, a parameter `json` hides `JSON`, a local `importer` hides the class `Importer`. `by` is a reserved word.
 - To save what can be saved and learn what could not, set `work.options().optAllOrNone = false` and read `work.failures()` or `work.failureOf(record)` after `apply()`. `Importer` is the example. Do not call `Database.insert` to get at the results.
-- CSV text is read with `unif.CsvUtil.read`, and text becomes a field's value with `unif.FieldUtil.fromText`. Do not write either here.
+- CSV text is read with `inj.CsvUtil.read`, and text becomes a field's value with `inj.FieldUtil.fromText`. Do not write either here.
 - A custom metadata relationship field (`Import_Column__mdt.Format__c`) holds the Id of the record it points at when read with `getAll()`.
 
 `App.cls` shows the registries:
 
 ```apex
-s = unif.Application.make(
+s = inj.Application.make(
     new Scheme64(),
     new Map<Type, Type>{ ExampleService.IService.class => ExampleService.class },   // services
     new Map<Type, Type>{ Reform_Blueprint__c.class => ReformBlueprintQuery.class }, // queries

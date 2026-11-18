@@ -5,21 +5,21 @@ Demo.quietExamples();
 String site = 'Injectify demo';
 
 // Clear the last run. One unit of work deletes all of it, children before parents.
-unif.IQuery oldDeals = App.s.model(Opportunity.SObjectType).query();
+inj.IQuery oldDeals = App.s.model(Opportunity.SObjectType).query();
 oldDeals.fields().add(new Set<SObjectField>{ Opportunity.AccountId });
 oldDeals.filters().add(App.s.eq(new List<SObjectField>{ Opportunity.AccountId, Account.Site }, site));
-unif.IQuery oldPeople = App.s.model(Contact.SObjectType).query();
+inj.IQuery oldPeople = App.s.model(Contact.SObjectType).query();
 oldPeople.fields().add(new Set<SObjectField>{ Contact.AccountId });
 oldPeople.filters().add(App.s.eq(new List<SObjectField>{ Contact.AccountId, Account.Site }, site));
-unif.IQuery oldFirms = App.s.model(Account.SObjectType).query();
+inj.IQuery oldFirms = App.s.model(Account.SObjectType).query();
 oldFirms.filters().add(App.s.eq(Account.Site, site));
-unif.IQuery oldItems = App.s.model(Rollup_Sample_Child__c.SObjectType).query();
+inj.IQuery oldItems = App.s.model(Rollup_Sample_Child__c.SObjectType).query();
 oldItems.fields().add(new Set<SObjectField>{ Rollup_Sample_Child__c.Parent__c });
 oldItems.filters().add(App.s.lk(new List<SObjectField>{ Rollup_Sample_Child__c.Parent__c, Rollup_Sample_Parent__c.Name }, 'Demo: %'));
-unif.IQuery oldRegions = App.s.model(Rollup_Sample_Parent__c.SObjectType).query();
+inj.IQuery oldRegions = App.s.model(Rollup_Sample_Parent__c.SObjectType).query();
 oldRegions.filters().add(App.s.lk(Rollup_Sample_Parent__c.Name, 'Demo: %'));
 
-unif.IWork clearing = App.s.work();
+inj.IWork clearing = App.s.work();
 clearing.purge(oldDeals.run()).purge(oldPeople.run()).purge(oldFirms.run());
 clearing.purge(oldItems.run());
 clearing.apply();
@@ -38,7 +38,7 @@ List<List<Object>> firms = new List<List<Object>>{
 List<String> surnames = new List<String>{ 'Okafor', 'Lindqvist', 'Tanaka', 'Moreau', 'Reyes', 'Novak', 'Haddad', 'Byrne', 'Castillo', 'Iyer', 'Petrov', 'Nakamura' };
 List<String> stages = new List<String>{ 'Prospecting', 'Negotiation/Review', 'Closed Won' };
 
-unif.IWork seeding = App.s.work();
+inj.IWork seeding = App.s.work();
 for (Integer at = 0; at < firms.size(); at++) {
   List<Object> firm = firms[at];
   Account company = new Account(
@@ -68,7 +68,7 @@ seeding.apply();
 Demo.cost('6 accounts, 12 contacts and 18 opportunities');
 
 // Two sample parents for Rollup, Clone and Import, each with children.
-unif.IWork sampling = App.s.work();
+inj.IWork sampling = App.s.work();
 for (String region : new List<String>{ 'North', 'South' }) {
   Rollup_Sample_Parent__c parent = new Rollup_Sample_Parent__c(Name = 'Demo: ' + region);
   for (Integer item = 1; item <= 3; item++) {
@@ -85,7 +85,7 @@ for (String region : new List<String>{ 'North', 'South' }) {
 sampling.apply();
 Demo.cost('2 sample parents with 6 children, their totals worked out by the rollup rules');
 
-unif.IQuery regions = App.s.model(Rollup_Sample_Parent__c.SObjectType).query();
+inj.IQuery regions = App.s.model(Rollup_Sample_Parent__c.SObjectType).query();
 regions.fields().addAll();
 regions.filters().add(App.s.lk(Rollup_Sample_Parent__c.Name, 'Demo: %'));
 regions.orderings().add(App.s.ordering(Rollup_Sample_Parent__c.Name, true, false));

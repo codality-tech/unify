@@ -3,7 +3,7 @@
  * fields and columns must all resolve, so a mistake is caught by the admin who made it and not by
  * the user who opens the form.
  */
-global class ReformBlueprints extends unif.BaseDomain {
+global class ReformBlueprints extends inj.BaseDomain {
   global ReformBlueprints() {
     super();
   }

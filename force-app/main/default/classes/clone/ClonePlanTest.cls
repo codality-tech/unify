@@ -134,8 +134,8 @@ private class ClonePlanTest {
       'Firm',
       new List<CloneStep>{ firm().suffixed(' II').setting('Rating = \'Cold\''), people().suffixed(' II') }
     );
-    Account original = new Account(Id = unif.IdUtil.generateId(Account.SObjectType), Name = 'Acme', Rating = 'Hot', Industry = 'Energy');
-    Contact person = new Contact(Id = unif.IdUtil.generateId(Contact.SObjectType), LastName = 'Ada', AccountId = original.Id);
+    Account original = new Account(Id = inj.IdUtil.generateId(Account.SObjectType), Name = 'Acme', Rating = 'Hot', Industry = 'Energy');
+    Contact person = new Contact(Id = inj.IdUtil.generateId(Contact.SObjectType), LastName = 'Ada', AccountId = original.Id);
 
     Account copy = (Account) plan.root.copyOf(original);
     Contact personCopy = (Contact) plan.nodes()[1].copyOf(person);

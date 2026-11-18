@@ -22,7 +22,7 @@ public with sharing class ReformEngine {
   private static final Integer FARTHEST_SKIP = 2000;
 
   private ReformPlan plan;
-  private unif.IModel model;
+  private inj.IModel model;
 
   public ReformEngine(ReformPlan plan) {
     if (plan == null || !plan.isUsable()) {
@@ -103,7 +103,7 @@ public with sharing class ReformEngine {
         visibleFields.add(field);
       }
     }
-    unif.IQuery one = model.query();
+    inj.IQuery one = model.query();
     one.fields().add(visibleFields);
     one.addCondition(App.s.condId(new Set<Id>{ recordId }));
     SObject found = one.withSharing(true).fetch();
@@ -131,11 +131,11 @@ public with sharing class ReformEngine {
   // record holds now. A lookup the user has just changed therefore shows its new parent.
   private void attachParents(SObject working) {
     Map<SObjectType, Set<Id>> idsByType = new Map<SObjectType, Set<Id>>();
-    Map<SObjectType, Set<unif.IPath>> readsByType = new Map<SObjectType, Set<unif.IPath>>();
+    Map<SObjectType, Set<inj.IPath>> readsByType = new Map<SObjectType, Set<inj.IPath>>();
     Map<SObjectField, SObjectType> typeByLookup = new Map<SObjectField, SObjectType>();
     for (SObjectField lookup : plan.parentPaths.keySet()) {
       Id parentId = lookup.getDescribe().isAccessible() || working.Id == null ? (Id) working.get(lookup) : null;
-      Set<unif.IPath> reads = readable(plan.parentPaths.get(lookup));
+      Set<inj.IPath> reads = readable(plan.parentPaths.get(lookup));
       if (parentId == null || reads.isEmpty()) {
         continue;
       }
@@ -143,13 +143,13 @@ public with sharing class ReformEngine {
       typeByLookup.put(lookup, parentType);
       if (!idsByType.containsKey(parentType)) {
         idsByType.put(parentType, new Set<Id>());
-        readsByType.put(parentType, new Set<unif.IPath>());
+        readsByType.put(parentType, new Set<inj.IPath>());
       }
       idsByType.get(parentType).add(parentId);
       readsByType.get(parentType).addAll(reads);
     }
     for (SObjectType parentType : idsByType.keySet()) {
-      unif.IQuery parents = App.s.model(parentType).query();
+      inj.IQuery parents = App.s.model(parentType).query();
       parents.fields().add(readsByType.get(parentType));
       parents.addCondition(App.s.condId(idsByType.get(parentType)));
       Map<Id, SObject> byId = new Map<Id, SObject>(parents.withSharing(true).run());
@@ -162,9 +162,9 @@ public with sharing class ReformEngine {
     }
   }
 
-  private static Set<unif.IPath> readable(Set<unif.IPath> paths) {
-    Set<unif.IPath> allowed = new Set<unif.IPath>();
-    for (unif.IPath path : paths) {
+  private static Set<inj.IPath> readable(Set<inj.IPath> paths) {
+    Set<inj.IPath> allowed = new Set<inj.IPath>();
+    for (inj.IPath path : paths) {
       if (path.describe().isAccessible()) {
         allowed.add(path);
       }
@@ -303,7 +303,7 @@ public with sharing class ReformEngine {
   private String merged(ReformPlan.Part part, SObject working) {
     String filled = part.content;
     for (String placeholder : part.mergePaths.keySet()) {
-      unif.IPath path = part.mergePaths.get(placeholder);
+      inj.IPath path = part.mergePaths.get(placeholder);
       String written = '';
       try {
         written = display(path.getFieldValue(working), path.describe().getSoapType());
@@ -357,8 +357,8 @@ public with sharing class ReformEngine {
     shown.skip = Math.min(Math.max(skip ?? 0, 0), FARTHEST_SKIP);
     shown.columns = new List<ReformView.Column>();
 
-    Map<String, unif.IPath> pathByColumn = new Map<String, unif.IPath>();
-    unif.IPath sortBy;
+    Map<String, inj.IPath> pathByColumn = new Map<String, inj.IPath>();
+    inj.IPath sortBy;
     for (ReformPlan.Column column : plan.columns) {
       ReformView.Column drawn = new ReformView.Column();
       drawn.name = column.name;
@@ -377,9 +377,9 @@ public with sharing class ReformEngine {
       shown.columns.add(drawn);
     }
 
-    unif.IQuery listed = model.query();
-    listed.fields().add(new Set<unif.IPath>(pathByColumn.values()));
-    for (unif.ICondition condition : plan.rowConditions) {
+    inj.IQuery listed = model.query();
+    listed.fields().add(new Set<inj.IPath>(pathByColumn.values()));
+    for (inj.ICondition condition : plan.rowConditions) {
       listed.addCondition(condition);
     }
     if (sortBy != null) {

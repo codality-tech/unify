@@ -6,7 +6,7 @@
  *
  * An object that already has a domain class makes the same four calls from its own hooks.
  */
-global class RollupHandler extends unif.BaseDomain {
+global class RollupHandler extends inj.BaseDomain {
   global RollupHandler() {
     super();
   }

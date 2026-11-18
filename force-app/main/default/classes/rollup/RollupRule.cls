@@ -20,7 +20,7 @@ public class RollupRule {
   public String childObject;
   public String lookupField;
   public String parentField;
-  public unif.Enums.Aggregate operation;
+  public inj.Enums.Aggregate operation;
   public String sourceField;
   public String filter;
   public Timing runs = Timing.IMMEDIATE;
@@ -42,7 +42,7 @@ public class RollupRule {
     rule.active = stored.Active__c == true;
     rule.guardsDelete = stored.Guard_Parent_Delete__c == true;
     rule.runs = stored.Timing__c == Timing.QUEUED.name() ? Timing.QUEUED : Timing.IMMEDIATE;
-    for (unif.Enums.Aggregate known : unif.Enums.Aggregate.values()) {
+    for (inj.Enums.Aggregate known : inj.Enums.Aggregate.values()) {
       if (known.name() == stored.Operation__c) {
         rule.operation = known;
       }
@@ -62,32 +62,32 @@ public class RollupRule {
 
   /** How many children there are. */
   public RollupRule count() {
-    return take(unif.Enums.Aggregate.COUNT, null);
+    return take(inj.Enums.Aggregate.COUNT, null);
   }
 
   /** How many children have a value in the field. */
   public RollupRule count(SObjectField counted) {
-    return take(unif.Enums.Aggregate.COUNT, counted);
+    return take(inj.Enums.Aggregate.COUNT, counted);
   }
 
   public RollupRule countDistinct(SObjectField counted) {
-    return take(unif.Enums.Aggregate.COUNT_DISTINCT, counted);
+    return take(inj.Enums.Aggregate.COUNT_DISTINCT, counted);
   }
 
   public RollupRule sum(SObjectField added) {
-    return take(unif.Enums.Aggregate.SUM, added);
+    return take(inj.Enums.Aggregate.SUM, added);
   }
 
   public RollupRule avg(SObjectField averaged) {
-    return take(unif.Enums.Aggregate.AVG, averaged);
+    return take(inj.Enums.Aggregate.AVG, averaged);
   }
 
   public RollupRule min(SObjectField compared) {
-    return take(unif.Enums.Aggregate.MIN, compared);
+    return take(inj.Enums.Aggregate.MIN, compared);
   }
 
   public RollupRule max(SObjectField compared) {
-    return take(unif.Enums.Aggregate.MAX, compared);
+    return take(inj.Enums.Aggregate.MAX, compared);
   }
 
   /** The field on the parent that receives the result. */
@@ -113,7 +113,7 @@ public class RollupRule {
     return this;
   }
 
-  private RollupRule take(unif.Enums.Aggregate wanted, SObjectField fromField) {
+  private RollupRule take(inj.Enums.Aggregate wanted, SObjectField fromField) {
     operation = wanted;
     sourceField = fromField?.getDescribe().getName();
     return this;

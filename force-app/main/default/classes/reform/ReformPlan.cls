@@ -25,7 +25,7 @@ public with sharing class ReformPlan {
   public class Part {
     public Kind kind;
     public Integer width = FULL_WIDTH;
-    public unif.ICondition showWhen;
+    public inj.ICondition showWhen;
     public List<String> problems = new List<String>();
 
     // Field parts
@@ -46,7 +46,7 @@ public with sharing class ReformPlan {
     // Heading and rich text parts
     public String content;
     /** The merge fields in the content: the text between {! and }, and the path it names. */
-    public Map<String, unif.IPath> mergePaths = new Map<String, unif.IPath>();
+    public Map<String, inj.IPath> mergePaths = new Map<String, inj.IPath>();
 
     public Boolean usable() {
       return problems.isEmpty() && kind != ReformPlan.Kind.INVALID;
@@ -56,24 +56,24 @@ public with sharing class ReformPlan {
   public class Column {
     public String name;
     public String label;
-    public unif.IPath path;
+    public inj.IPath path;
     public List<String> problems = new List<String>();
   }
 
   public ReformDefinition definition;
-  public unif.IModel model;
+  public inj.IModel model;
   public String label;
   public String pluralLabel;
   public Id recordTypeId;
   public List<Part> parts = new List<Part>();
   public List<Column> columns = new List<Column>();
   /** Which rows a table lists: the filters, the fixed field values and the record type. */
-  public List<unif.ICondition> rowConditions = new List<unif.ICondition>();
+  public List<inj.ICondition> rowConditions = new List<inj.ICondition>();
   /**
    * For every lookup on the object that a rule or merge field reads through: the paths to read,
    * as seen from the parent. Account.Owner.Name on an opportunity is Owner.Name under AccountId.
    */
-  public Map<SObjectField, Set<unif.IPath>> parentPaths = new Map<SObjectField, Set<unif.IPath>>();
+  public Map<SObjectField, Set<inj.IPath>> parentPaths = new Map<SObjectField, Set<inj.IPath>>();
   /** The object's own fields that a rule or merge field reads, lookups walked through included. */
   public Set<SObjectField> fieldsRead = new Set<SObjectField>();
   public List<String> problems = new List<String>();
@@ -248,7 +248,7 @@ public with sharing class ReformPlan {
     Matcher found = MERGE_FIELD.matcher(content);
     while (found.find()) {
       String named = found.group(1);
-      unif.IPath path = model.path(named);
+      inj.IPath path = model.path(named);
       if (path == null) {
         part.problems.add('{!' + named + '} is not a field path on ' + model.name());
       } else {
@@ -300,7 +300,7 @@ public with sharing class ReformPlan {
 
   private void bindRowConditions() {
     for (String filter : definition.filters) {
-      unif.ICondition parsed = rule(filter, problems, 'filter');
+      inj.ICondition parsed = rule(filter, problems, 'filter');
       if (parsed != null) {
         rowConditions.add(parsed);
       }
@@ -316,7 +316,7 @@ public with sharing class ReformPlan {
   }
 
   // A rule written as a condition, e.g. StageName != 'Closed Won' AND Amount > 1000.
-  private unif.ICondition rule(String written, List<String> report, String what) {
+  private inj.ICondition rule(String written, List<String> report, String what) {
     try {
       return model.parseCondition(written);
     } catch (Exception unreadable) {
@@ -330,7 +330,7 @@ public with sharing class ReformPlan {
   // Finds every path a rule or merge field reads. Fields of the object itself make their parts
   // reactive; paths through a lookup are remembered under that lookup, as seen from the parent.
   private void traceWhatIsRead() {
-    Set<unif.IPath> read = new Set<unif.IPath>();
+    Set<inj.IPath> read = new Set<inj.IPath>();
     for (Part part : parts) {
       if (!part.usable()) {
         continue;
@@ -340,7 +340,7 @@ public with sharing class ReformPlan {
         read.addAll(model.compileCondition(part.showWhen).getPaths());
       }
     }
-    for (unif.IPath path : read) {
+    for (inj.IPath path : read) {
       List<SObjectField> steps = path.fieldSequence();
       fieldsRead.add(steps[0]);
       Part first = partByField.get(steps[0]);
@@ -350,7 +350,7 @@ public with sharing class ReformPlan {
       if (steps.size() > 1) {
         SObjectField lookup = steps.remove(0);
         if (!parentPaths.containsKey(lookup)) {
-          parentPaths.put(lookup, new Set<unif.IPath>());
+          parentPaths.put(lookup, new Set<inj.IPath>());
         }
         parentPaths.get(lookup).add(App.s.path(steps));
       }

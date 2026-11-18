@@ -9,7 +9,7 @@ for (Rollup_Rule__mdt rule : Rollup_Rule__mdt.getAll().values()) {
   Demo.say(rule.Operation__c.rightPad(15) + (rule.Source_Field__c ?? '').rightPad(11) + ' -> ' + rule.Parent_Field__c.rightPad(19) + (rule.Filter__c == null ? '' : ' where ' + rule.Filter__c));
 }
 
-unif.IQuery north = App.s.model(Rollup_Sample_Parent__c.SObjectType).query();
+inj.IQuery north = App.s.model(Rollup_Sample_Parent__c.SObjectType).query();
 north.fields().addAll();
 north.filters().add(App.s.eq(Rollup_Sample_Parent__c.Name, 'Demo: North'));
 Rollup_Sample_Parent__c parent = (Rollup_Sample_Parent__c) north.fetch();
@@ -19,7 +19,7 @@ Demo.table(north.run(), columns);
 
 Demo.title('200 more children are saved under it');
 Demo.mark();
-unif.IWork work = App.s.work();
+inj.IWork work = App.s.work();
 for (Integer n = 1; n <= 200; n++) {
   work.track(new Rollup_Sample_Child__c(Name = 'Bulk ' + n, Parent__c = parent.Id, Amount__c = n, Due__c = Date.today().addDays(n), Status__c = 'Open', Kind__c = 'Bulk'));
 }
@@ -30,7 +30,7 @@ Demo.title('After');
 Demo.table(north.run(), columns);
 
 Demo.title('One child is closed: only the totals that leave out closed children move');
-unif.IQuery biggest = App.s.model(Rollup_Sample_Child__c.SObjectType).query();
+inj.IQuery biggest = App.s.model(Rollup_Sample_Child__c.SObjectType).query();
 biggest.filters().add(App.s.eq(Rollup_Sample_Child__c.Name, 'Bulk 200'));
 Id itsId = biggest.fetch().Id;
 Demo.mark();
