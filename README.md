@@ -466,9 +466,10 @@ py scripts/demo/run.py 01
 
 ## Working on it
 
-The Injectify package must be installed in the org first. Then both halves are deployed as source, to an org without a namespace:
+The Injectify package must be installed in the org first (a beta, so a scratch org or a sandbox). Then both halves are deployed as source, to an org without a namespace:
 
 ```bash
+sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
 sf project deploy start -d force-app -d subscriber --ignore-conflicts
 sf apex test run -l RunLocalTests -c
 ```
