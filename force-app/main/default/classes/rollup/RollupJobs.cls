@@ -29,7 +29,7 @@ global class RollupJobs {
     }
 
     public inj.IQuery batchStart() {
-      return RollupScheme.app.model(parentObject).query();
+      return Naming.model(RollupScheme.app, parentObject).query();
     }
 
     public void batchExecute(List<SObject> scope) {

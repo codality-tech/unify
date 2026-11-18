@@ -8,7 +8,7 @@ Guidance for Claude Code when working in this repository.
 
 The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `inj`.
 
-The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; no version built yet). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
+The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; first beta `Unify@0.1.0-1`, `04tgK000000b77NQAQ`, not promoted and not yet installed anywhere). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
 
 | Need | Where |
 | --- | --- |
@@ -22,7 +22,7 @@ Read the API file before writing framework code. Do not guess at method names, a
 
 ```
 force-app/main/default/     THE PACKAGE
-  classes/            Unify (the application the solutions run on)
+  classes/            Unify (the application the solutions run on); Naming (finds a written object or field name)
   classes/reform/     Reform's server side and its tests
   classes/rollup/     Rollup's engine and its tests
   classes/clone/      Clone's engine and its tests
@@ -50,6 +50,8 @@ subscriber/main/default/    AN ORG'S OWN SIDE (source only)
 - **Nothing in `force-app/` names a class in `subscriber/`.** The package is built from `force-app/` alone. The solutions reach the framework through `Unify.s`, never `App.s`.
 - **`global` is the promise.** An org calls only what the README's table lists: `RollupHandler`, `Rollups` (`changed`, `guardDelete`, `recalculate`, `sweep`), `RollupJobs.Nightly`, `Cloner.copy`, `CloneAction`, `Importer` (`load`, `check`), `ImportResult`. Add a `global` when an org needs one; do not widen a class because it is convenient. `ReformBlueprints`, `ReformBlueprintQuery` and `RollupHandler` are `global` because the framework has to construct them.
 - The package's own objects are wired in `Unify`: the blueprint's query and domain classes, and `RollupHandler` for the two sample objects. Their triggers call `Unify.s.tf().execute()`.
+- **A name that arrives as text goes through `Naming`**: `Naming.model(app, name)`, `Naming.field(model, name)`, and `Naming.inText(model, text)` for a filter or a dotted path before the framework parses it. Inside the package Unify's own objects and fields are `unif__...`, and the framework, in its own namespace, finds them by full name only; `Naming` tries a custom name as written and then with the package's namespace. Do not call `app.model(text)` or `model.fieldMap().get(text)` on a written name.
+- **A packaged test never spells a custom API name in what it expects.** Messages, permissions and generated SOQL carry the namespace in a build: write `String.valueOf(Rollup_Sample_Child__c.SObjectType)` and `field.getDescribe().getName()`. Names a test *gives* as text (a filter, a blueprint) can stay bare; that is what `Naming` is for. None of this shows in the scratch org, which has no namespace: only a package build proves it.
 - The tests in `force-app/` must cover the package without help from `subscriber/`. They cannot switch off an org's triggers, so the example triggers on Account stay out of every test unless it sets `App.examplesInTests`.
 - A sample object's trigger runs on `Unify.s`. A test in `subscriber/` that wants it off, or wants the org's bypass rule to apply to it, says so to `Unify.s.tf()` (`GuideWorkTest`, `BypassTriggersTest`).
 

@@ -130,7 +130,7 @@ public with sharing class ReformPlan {
       problems.add('A blueprint needs an object (sobjectName)');
       return;
     }
-    model = Unify.s.model(definition.objectName);
+    model = Naming.model(Unify.s, definition.objectName);
     if (model == null) {
       problems.add('There is no object named ' + definition.objectName);
       return;
@@ -190,7 +190,7 @@ public with sharing class ReformPlan {
   }
 
   private void bindField(Part part, ReformDefinition.FieldSpec spec) {
-    part.field = spec.name == null ? null : model.fieldMap().get(spec.name);
+    part.field = Naming.field(model, spec.name);
     if (part.field == null) {
       part.problems.add(model.name() + ' has no field named ' + spec.name);
       return;
@@ -226,7 +226,7 @@ public with sharing class ReformPlan {
   // Parameters adjust the element of a field that has one, and otherwise add the field.
   private void applyParameters() {
     for (ReformDefinition.FieldSpec spec : definition.parameters) {
-      SObjectField field = spec.name == null ? null : model.fieldMap().get(spec.name);
+      SObjectField field = Naming.field(model, spec.name);
       Part existing = field == null ? null : partByField.get(field);
       if (existing != null) {
         overlay(existing, spec);
@@ -248,7 +248,7 @@ public with sharing class ReformPlan {
     Matcher found = MERGE_FIELD.matcher(content);
     while (found.find()) {
       String named = found.group(1);
-      inj.IPath path = model.path(named);
+      inj.IPath path = model.path(Naming.inText(model, named));
       if (path == null) {
         part.problems.add('{!' + named + '} is not a field path on ' + model.name());
       } else {
@@ -267,7 +267,7 @@ public with sharing class ReformPlan {
     for (ReformDefinition.ColumnSpec spec : asked) {
       Column column = new Column();
       column.name = spec.name;
-      column.path = spec.name == null ? null : model.path(spec.name);
+      column.path = spec.name == null ? null : model.path(Naming.inText(model, spec.name));
       if (column.path == null) {
         column.problems.add(spec.name + ' is not a field path on ' + model.name());
       } else {
@@ -281,7 +281,7 @@ public with sharing class ReformPlan {
   // With no columns asked for: the record's name and when it was made and last changed.
   private List<ReformDefinition.ColumnSpec> defaultColumns() {
     List<String> names = new List<String>{ 'CreatedDate', 'LastModifiedDate' };
-    SObjectField titleField = definition.namingField == null ? model.nameField() : model.fieldMap().get(definition.namingField);
+    SObjectField titleField = definition.namingField == null ? model.nameField() : Naming.field(model, definition.namingField);
     if (titleField != null) {
       names.add(0, titleField.getDescribe().getName());
     }
@@ -318,7 +318,7 @@ public with sharing class ReformPlan {
   // A rule written as a condition, e.g. StageName != 'Closed Won' AND Amount > 1000.
   private inj.ICondition rule(String written, List<String> report, String what) {
     try {
-      return model.parseCondition(written);
+      return model.parseCondition(Naming.inText(model, written));
     } catch (Exception unreadable) {
       report.add('Cannot read the ' + what + ' rule "' + written + '": ' + unreadable.getMessage());
       return null;

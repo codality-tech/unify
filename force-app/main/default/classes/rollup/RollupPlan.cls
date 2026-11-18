@@ -50,7 +50,7 @@ public class RollupPlan {
   // Resolving
 
   private void resolve() {
-    child = String.isBlank(rule.childObject) ? null : RollupScheme.app.model(rule.childObject);
+    child = Naming.model(RollupScheme.app, rule.childObject);
     if (child == null) {
       problems.add('Unknown child object: ' + rule.childObject);
       return;
@@ -128,7 +128,7 @@ public class RollupPlan {
       return;
     }
     try {
-      filter = child.parseCondition(rule.filter);
+      filter = child.parseCondition(Naming.inText(child, rule.filter));
       for (inj.IPath read : child.compileCondition(filter).getPaths()) {
         watched.add(read.fieldSequence()[0]);
         filterIsLocal = filterIsLocal && read.size() == 1;
@@ -144,7 +144,7 @@ public class RollupPlan {
       problems.add('The rule has no ' + role);
       return null;
     }
-    SObjectField found = owner.fieldMap().get(fieldName);
+    SObjectField found = Naming.field(owner, fieldName);
     if (found == null) {
       problems.add(owner.name() + ' has no field ' + fieldName);
     }

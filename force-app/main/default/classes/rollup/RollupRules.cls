@@ -11,6 +11,7 @@ public class RollupRules {
   private static List<RollupRule> injected;
   private static Map<String, RollupRule> rulesByName;
   private static Map<String, RollupPlan> plansByName = new Map<String, RollupPlan>();
+  private static Map<String, SObjectType> childTypeByName = new Map<String, SObjectType>();
 
   /** Tests give the rules themselves, so they do not depend on the records the org happens to hold. */
   @TestVisible
@@ -18,6 +19,7 @@ public class RollupRules {
     injected = rules;
     rulesByName = null;
     plansByName = new Map<String, RollupPlan>();
+    childTypeByName = new Map<String, SObjectType>();
   }
 
   // Active rules by name, in name order.
@@ -55,6 +57,14 @@ public class RollupRules {
     return plan;
   }
 
+  // The object a rule's children are records of, from the name alone: finding it compiles nothing.
+  private static SObjectType childTypeOf(RollupRule rule) {
+    if (!childTypeByName.containsKey(rule.name)) {
+      childTypeByName.put(rule.name, Naming.model(RollupScheme.app, rule.childObject)?.token());
+    }
+    return childTypeByName.get(rule.name);
+  }
+
   private static RollupPlan sound(RollupPlan plan) {
     if (!plan.isSound()) {
       throw new Rollups.RollupException('Rollup rule ' + plan.rule.name + ' cannot run: ' + String.join(plan.problems, '; '));
@@ -70,10 +80,9 @@ public class RollupRules {
 
   /** The rules that roll this object's records up. Only these are compiled. */
   public static List<RollupPlan> forChild(SObjectType childType) {
-    String childName = String.valueOf(childType);
     List<RollupPlan> plans = new List<RollupPlan>();
     for (RollupRule rule : rules().values()) {
-      if (rule.childObject == childName) {
+      if (childTypeOf(rule) == childType) {
         plans.add(sound(planOf(rule)));
       }
     }

@@ -12,12 +12,12 @@ private class RollupRuleTest {
       .guardingDelete();
 
     Assert.areEqual('Open_Amount', rule.name);
-    Assert.areEqual('Rollup_Sample_Child__c', rule.childObject);
-    Assert.areEqual('Parent__c', rule.lookupField);
+    Assert.areEqual(String.valueOf(Rollup_Sample_Child__c.SObjectType), rule.childObject);
+    Assert.areEqual(Rollup_Sample_Child__c.Parent__c.getDescribe().getName(), rule.lookupField);
     Assert.areEqual(inj.Enums.Aggregate.SUM, rule.operation);
-    Assert.areEqual('Amount__c', rule.sourceField);
+    Assert.areEqual(Rollup_Sample_Child__c.Amount__c.getDescribe().getName(), rule.sourceField);
     Assert.areEqual('Status__c != \'Closed\'', rule.filter);
-    Assert.areEqual('Open_Amount__c', rule.parentField);
+    Assert.areEqual(Rollup_Sample_Parent__c.Open_Amount__c.getDescribe().getName(), rule.parentField);
     Assert.areEqual(RollupRule.Timing.QUEUED, rule.runs);
     Assert.isTrue(rule.guardsDelete);
     Assert.isTrue(rule.active);
@@ -30,7 +30,7 @@ private class RollupRuleTest {
 
     Assert.areEqual(inj.Enums.Aggregate.COUNT, rule.count().operation);
     Assert.isNull(rule.sourceField, 'a plain count reads no field');
-    Assert.areEqual('Amount__c', rule.count(amount).sourceField);
+    Assert.areEqual(amount.getDescribe().getName(), rule.count(amount).sourceField);
     Assert.areEqual(inj.Enums.Aggregate.COUNT_DISTINCT, rule.countDistinct(amount).operation);
     Assert.areEqual(inj.Enums.Aggregate.AVG, rule.avg(amount).operation);
     Assert.areEqual(inj.Enums.Aggregate.MIN, rule.min(amount).operation);

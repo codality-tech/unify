@@ -34,7 +34,7 @@ private class ReformSharingTest {
       insert granted;
       insert new ObjectPermissions(
         ParentId = granted.Id,
-        SobjectType = 'Reform_Private_Sample__c',
+        SobjectType = String.valueOf(Reform_Private_Sample__c.SObjectType),
         PermissionsRead = true,
         PermissionsCreate = true,
         PermissionsEdit = true,

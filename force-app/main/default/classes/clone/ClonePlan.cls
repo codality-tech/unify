@@ -89,7 +89,7 @@ public class ClonePlan {
 
     private List<String> resolve() {
       List<String> wrong = new List<String>();
-      model = String.isBlank(step.objectName) ? null : Unify.s.model(step.objectName);
+      model = Naming.model(Unify.s, step.objectName);
       if (model == null) {
         wrong.add('unknown object ' + step.objectName);
         return wrong;
@@ -131,7 +131,7 @@ public class ClonePlan {
         return;
       }
       try {
-        filter = model.parseCondition(step.filter);
+        filter = model.parseCondition(Naming.inText(model, step.filter));
         model.compileCondition(filter);
       } catch (Exception unreadable) {
         filter = null;
@@ -147,7 +147,7 @@ public class ClonePlan {
         return;
       }
       try {
-        inj.IConditionCompilation compiled = model.compileCondition(model.parseCondition(step.values));
+        inj.IConditionCompilation compiled = model.compileCondition(model.parseCondition(Naming.inText(model, step.values)));
         // A negated group shows in the markup; a negated comparison shows only in its own SOQL.
         Boolean plain = !compiled.getMarkup().contains(' OR ') && !compiled.getMarkup().contains('NOT ');
         for (inj.IFieldCondition setting : compiled.getFieldConditions()) {
@@ -179,7 +179,7 @@ public class ClonePlan {
     }
 
     private SObjectField fieldNamed(String fieldName, List<String> wrong) {
-      SObjectField found = model.fieldMap().get(fieldName);
+      SObjectField found = Naming.field(model, fieldName);
       if (found == null) {
         wrong.add(model.name() + ' has no field ' + fieldName);
       }

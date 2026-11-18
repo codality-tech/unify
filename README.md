@@ -4,10 +4,12 @@ Solutions built with the Injectify framework. Each one is a working piece of an 
 
 The repository has two halves:
 
-- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. No version is built yet.
+- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its first beta is `Unify@0.1.0-1`.
 - **`subscriber/` is an org's own side**, deployed as source and never packaged: the org's entry point (`App`), example classes, the tests that check the framework's guides, and the demo.
 
 Code in the examples below is written as it reads in this repository, without a prefix. In an org that installs the package, the solutions' names carry it: `unif.Cloner.copy(...)`, `unif.RollupHandler`, `unif__Rollup_Rule__mdt`.
+
+Names written as text (in a rule, a plan, a format, a blueprint or a filter) are the org's own API names, as usual. A custom name that is not found as written is looked for once more among the package's own objects and fields, which is how the samples that ship with it run: their records say `Rollup_Sample_Child__c` and `Status__c != 'Closed'` in every org.
 
 | Solution | What an org calls or uses |
 | --- | --- |
@@ -17,6 +19,17 @@ Code in the examples below is written as it reads in this repository, without a 
 | Import | `Importer.load`, `Importer.check`, `ImportResult`, the component `importPanel`, and `Import_Format__mdt` records with their columns |
 
 Those Apex names are `global`. Everything else in the package is its own business and can change.
+
+## Install
+
+Both packages are in beta, so they install in a scratch org or a sandbox, not in production. Injectify first, then Unify:
+
+```bash
+sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
+sf package install --package 04tgK000000b77NQAQ --target-org <alias> --wait 20
+```
+
+The build ran the package's Apex tests in its namespace. The package has not yet been installed in an org of its own, so the components and tabs are untried as installed.
 
 > **Status:** early. Reform is rebuilt on the current framework: server side and Lightning components, both tested. Rollup and Clone are new: server side only, tested. Import is new: server side and a Lightning component, both tested.
 

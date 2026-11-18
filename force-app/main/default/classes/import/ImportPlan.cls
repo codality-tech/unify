@@ -118,7 +118,7 @@ public class ImportPlan {
   // Resolving the format
 
   private void resolve() {
-    model = String.isBlank(format.objectName) ? null : Unify.s.model(format.objectName);
+    model = Naming.model(Unify.s, format.objectName);
     if (model == null) {
       problems.add('unknown object ' + format.objectName);
       return;
@@ -165,7 +165,7 @@ public class ImportPlan {
     } else if (!creates && String.isBlank(format.matchField)) {
       problems.add('it changes records, so it needs a field to match rows on');
     } else if (!creates) {
-      matchOn = model.fieldMap().get(format.matchField.trim());
+      matchOn = Naming.field(model, format.matchField);
       if (matchOn == null) {
         problems.add('unknown match field ' + model.name() + '.' + format.matchField);
       } else if (!matchable(shapeOf(model, matchOn))) {
@@ -177,7 +177,7 @@ public class ImportPlan {
 
   // The column for a field name, or null with the reason added to `wrong`.
   private Slot slotFor(String header, String fieldName, String relatedField, List<String> wrong) {
-    SObjectField field = String.isBlank(fieldName) ? null : model.fieldMap().get(fieldName.trim());
+    SObjectField field = Naming.field(model, fieldName);
     if (field == null) {
       wrong.add('unknown field ' + model.name() + '.' + fieldName);
       return null;
@@ -212,7 +212,7 @@ public class ImportPlan {
       wrong.add(slot.shape.getName() + ' can point at more than one object, so its cells must hold Ids');
     } else {
       inj.IModel target = Unify.s.model(targets[0]);
-      SObjectField finder = target.fieldMap().get(relatedField);
+      SObjectField finder = Naming.field(target, relatedField);
       if (finder == null) {
         wrong.add('unknown field ' + target.name() + '.' + relatedField);
       } else if (shapeOf(target, finder).getSoapType() != SoapType.STRING) {
@@ -316,6 +316,13 @@ public class ImportPlan {
         byRelationship.put(shape.getRelationshipName().toLowerCase(), field);
       }
     }
+    // A header may leave Unify's namespace off the relationship of one of its own lookups.
+    for (String full : new List<String>(byRelationship.keySet())) {
+      String shorter = Naming.withoutNamespace(full);
+      if (!byRelationship.containsKey(shorter)) {
+        byRelationship.put(shorter, byRelationship.get(full));
+      }
+    }
     Set<SObjectField> filled = new Set<SObjectField>();
     for (Integer at = 0; at < header.size(); at++) {
       String title = header[at];
@@ -323,7 +330,7 @@ public class ImportPlan {
         continue;
       }
       String key = title.toLowerCase();
-      SObjectField field = model.fieldMap().get(title);
+      SObjectField field = Naming.field(model, title);
       String relatedField;
       if (field == null && title.contains('.')) {
         field = byRelationship.get(key.substringBefore('.').trim());

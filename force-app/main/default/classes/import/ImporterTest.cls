@@ -524,7 +524,7 @@ private class ImporterTest {
       }
     );
     User loader = userWith(
-      new List<ObjectPermissions>{ new ObjectPermissions(SobjectType = 'Reform_Private_Sample__c', PermissionsRead = true, PermissionsEdit = true) },
+      new List<ObjectPermissions>{ new ObjectPermissions(SobjectType = String.valueOf(Reform_Private_Sample__c.SObjectType), PermissionsRead = true, PermissionsEdit = true) },
       new List<String>()
     );
     // Shared privately: this one belongs to the user running the test.

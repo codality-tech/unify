@@ -61,7 +61,7 @@ private class RollupRulesTest {
     Assert.areEqual(1, RollupRules.forParent(Account.SObjectType).size());
     Assert.areEqual(2, RollupRules.forParent(Rollup_Sample_Parent__c.SObjectType).size());
     Assert.isTrue(RollupRules.forChild(Account.SObjectType).isEmpty());
-    Assert.areEqual(new List<String>{ 'Account', 'Rollup_Sample_Parent__c' }, RollupRules.parentObjects());
+    Assert.areEqual(new List<String>{ 'Account', String.valueOf(Rollup_Sample_Parent__c.SObjectType) }, RollupRules.parentObjects());
     Assert.areEqual('Alpha', RollupRules.named('Alpha').rule.name);
     Assert.isNull(RollupRules.named('Off'), 'an inactive rule is not there at all');
     Assert.isNull(RollupRules.named('Unknown'));
@@ -74,7 +74,7 @@ private class RollupRulesTest {
     broken.parentField = 'Nope__c';
     RollupRules.use(new List<RollupRule>{ broken, new RollupRule('Contacts').children(Contact.AccountId).count().writeTo(Account.NumberOfEmployees) });
 
-    Assert.areEqual(new List<String>{ 'Rollup_Sample_Parent__c has no field Nope__c' }, RollupRules.problems().get('Broken'));
+    Assert.areEqual(new List<String>{ String.valueOf(Rollup_Sample_Parent__c.SObjectType) + ' has no field Nope__c' }, RollupRules.problems().get('Broken'));
     Assert.areEqual(1, RollupRules.problems().size());
     Assert.areEqual(1, RollupRules.forChild(Contact.SObjectType).size(), 'rules of other objects still run');
 
@@ -84,6 +84,6 @@ private class RollupRulesTest {
     } catch (Rollups.RollupException refused) {
       refusal = refused.getMessage();
     }
-    Assert.areEqual('Rollup rule Broken cannot run: Rollup_Sample_Parent__c has no field Nope__c', refusal);
+    Assert.areEqual('Rollup rule Broken cannot run: ' + String.valueOf(Rollup_Sample_Parent__c.SObjectType) + ' has no field Nope__c', refusal);
   }
 }

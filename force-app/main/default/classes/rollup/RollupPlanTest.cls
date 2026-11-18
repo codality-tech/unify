@@ -1,6 +1,15 @@
 /** What a plan says is wrong with a rule, and what it decides ahead of time for a rule that is right. */
 @IsTest
 private class RollupPlanTest {
+  private static final String CHILD = String.valueOf(Rollup_Sample_Child__c.SObjectType);
+  private static final String PARENT = String.valueOf(Rollup_Sample_Parent__c.SObjectType);
+
+  // A field as a message names it: Object.Field, each with the org's namespace if it has one.
+  private static String named(SObjectField field) {
+    DescribeFieldResult shape = field.getDescribe();
+    return String.valueOf(shape.getSObjectType()) + '.' + shape.getName();
+  }
+
   private static RollupRule rule() {
     return new RollupRule('Rule').children(Rollup_Sample_Child__c.Parent__c);
   }
@@ -41,22 +50,22 @@ private class RollupPlanTest {
 
     RollupRule wrongLookup = counting();
     wrongLookup.lookupField = 'Nope__c';
-    Assert.areEqual('Rollup_Sample_Child__c has no field Nope__c', problemsOf(wrongLookup));
+    Assert.areEqual(CHILD + ' has no field Nope__c', problemsOf(wrongLookup));
 
     RollupRule wrongTarget = counting();
     wrongTarget.parentField = 'Nope__c';
-    Assert.areEqual('Rollup_Sample_Parent__c has no field Nope__c', problemsOf(wrongTarget));
+    Assert.areEqual(PARENT + ' has no field Nope__c', problemsOf(wrongTarget));
 
     RollupRule wrongSource = counting();
     wrongSource.sourceField = 'Nope__c';
-    Assert.areEqual('Rollup_Sample_Child__c has no field Nope__c', problemsOf(wrongSource));
+    Assert.areEqual(CHILD + ' has no field Nope__c', problemsOf(wrongSource));
   }
 
   @IsTest
   static void aLookupMustPointAtOneObject() {
     RollupRule notALookup = counting();
     notALookup.lookupField = 'Amount__c';
-    Assert.areEqual('Rollup_Sample_Child__c.Amount__c is not a lookup', problemsOf(notALookup));
+    Assert.areEqual(named(Rollup_Sample_Child__c.Amount__c) + ' is not a lookup', problemsOf(notALookup));
 
     RollupRule manyTargets = new RollupRule('Rule').children(Task.WhatId).count().writeTo(Account.NumberOfEmployees);
     Assert.areEqual('Task.WhatId can point at more than one object, which a rollup cannot follow', problemsOf(manyTargets));
@@ -72,23 +81,23 @@ private class RollupPlanTest {
     Assert.areEqual('SUM needs a source field', problemsOf(noSource));
 
     Assert.areEqual(
-      'Rollup_Sample_Child__c.Kind__c is not a number, so it cannot be summed or averaged',
+      named(Rollup_Sample_Child__c.Kind__c) + ' is not a number, so it cannot be summed or averaged',
       problemsOf(rule().sum(Rollup_Sample_Child__c.Kind__c).writeTo(Rollup_Sample_Parent__c.Open_Amount__c))
     );
     Assert.areEqual(
-      'Rollup_Sample_Parent__c.Earliest_Due__c must be a number field to hold a count',
+      named(Rollup_Sample_Parent__c.Earliest_Due__c) + ' must be a number field to hold a count',
       problemsOf(rule().count().writeTo(Rollup_Sample_Parent__c.Earliest_Due__c))
     );
     Assert.areEqual(
-      'Rollup_Sample_Parent__c.Earliest_Due__c must be a number field to hold a sum or an average',
+      named(Rollup_Sample_Parent__c.Earliest_Due__c) + ' must be a number field to hold a sum or an average',
       problemsOf(rule().avg(Rollup_Sample_Child__c.Amount__c).writeTo(Rollup_Sample_Parent__c.Earliest_Due__c))
     );
     Assert.areEqual(
-      'Rollup_Sample_Parent__c.Child_Count__c must hold the same kind of value as Rollup_Sample_Child__c.Due__c',
+      named(Rollup_Sample_Parent__c.Child_Count__c) + ' must hold the same kind of value as ' + named(Rollup_Sample_Child__c.Due__c),
       problemsOf(rule().max(Rollup_Sample_Child__c.Due__c).writeTo(Rollup_Sample_Parent__c.Child_Count__c))
     );
     Assert.areEqual(
-      'Rollup_Sample_Parent__c.Earliest_Due__c must hold the same kind of value as Rollup_Sample_Child__c.CreatedDate',
+      named(Rollup_Sample_Parent__c.Earliest_Due__c) + ' must hold the same kind of value as ' + named(Rollup_Sample_Child__c.CreatedDate),
       problemsOf(rule().max(Rollup_Sample_Child__c.CreatedDate).writeTo(Rollup_Sample_Parent__c.Earliest_Due__c)),
       'a date field does not hold a date and time'
     );
@@ -101,7 +110,7 @@ private class RollupPlanTest {
       problemsOf(new RollupRule('Rule').children(Contact.AccountId).max(Contact.Description).writeTo(Account.Description))
     );
     Assert.areEqual(
-      'Rollup_Sample_Child__c.Former_Parent__c has no smallest or largest value',
+      named(Rollup_Sample_Child__c.Former_Parent__c) + ' has no smallest or largest value',
       problemsOf(rule().max(Rollup_Sample_Child__c.Former_Parent__c).writeTo(Rollup_Sample_Parent__c.Name))
     );
     String autoNumbered = problemsOf(new RollupRule('Rule').children(CaseComment.ParentId).count().writeTo(Case.CaseNumber));
@@ -143,7 +152,7 @@ private class RollupPlanTest {
     Assert.areNotEqual(one.queryKey(), other.queryKey());
     Assert.areNotEqual(one.functionKey(), two.functionKey());
     Assert.areEqual('COUNT(Id)', one.function().toSoql());
-    Assert.areEqual('SUM(Amount__c)', two.function().toSoql());
+    Assert.areEqual('SUM(' + Rollup_Sample_Child__c.Amount__c.getDescribe().getName() + ')', two.function().toSoql());
   }
 
   @IsTest

@@ -238,7 +238,7 @@ private class RollupHandlerTest {
       refusal = refused.getMessage();
     }
     Assert.isTrue(
-      refusal != null && refusal.contains('Rollup rule Broken cannot run: Rollup_Sample_Parent__c has no field Nope__c'),
+      refusal != null && refusal.contains('Rollup rule Broken cannot run: ' + String.valueOf(Rollup_Sample_Parent__c.SObjectType) + ' has no field Nope__c'),
       'the save fails and says which rule and why: ' + refusal
     );
   }
@@ -270,9 +270,9 @@ private class RollupHandlerTest {
       PermissionSet granted = new PermissionSet(Name = 'Rollup_Handler_Test', Label = 'Rollup Handler Test');
       insert granted;
       List<ObjectPermissions> onObjects = new List<ObjectPermissions>();
-      onObjects.add(new ObjectPermissions(ParentId = granted.Id, SobjectType = 'Rollup_Sample_Parent__c', PermissionsRead = true));
+      onObjects.add(new ObjectPermissions(ParentId = granted.Id, SobjectType = String.valueOf(Rollup_Sample_Parent__c.SObjectType), PermissionsRead = true));
       onObjects.add(
-        new ObjectPermissions(ParentId = granted.Id, SobjectType = 'Rollup_Sample_Child__c', PermissionsRead = true, PermissionsCreate = true, PermissionsEdit = true)
+        new ObjectPermissions(ParentId = granted.Id, SobjectType = String.valueOf(Rollup_Sample_Child__c.SObjectType), PermissionsRead = true, PermissionsCreate = true, PermissionsEdit = true)
       );
       insert onObjects;
       insert new PermissionSetAssignment(AssigneeId = made.Id, PermissionSetId = granted.Id);

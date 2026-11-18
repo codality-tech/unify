@@ -257,7 +257,7 @@ private class ClonerTest {
   static void aRecordTheUserCannotSeeOrAnObjectTheyCannotReadIsRefused() {
     ClonePlans.use(new List<CloneStep>{ new CloneStep('Sample').copying(Reform_Private_Sample__c.SObjectType), new CloneStep('Firm').copying(Account.SObjectType) });
     User copier = userWith(
-      new List<ObjectPermissions>{ new ObjectPermissions(SobjectType = 'Reform_Private_Sample__c', PermissionsRead = true, PermissionsCreate = true) },
+      new List<ObjectPermissions>{ new ObjectPermissions(SobjectType = String.valueOf(Reform_Private_Sample__c.SObjectType), PermissionsRead = true, PermissionsCreate = true) },
       new List<String>()
     );
     // Shared privately: this one belongs to the user running the test.

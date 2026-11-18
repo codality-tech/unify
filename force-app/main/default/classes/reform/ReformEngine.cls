@@ -79,7 +79,7 @@ public with sharing class ReformEngine {
         }
         continue;
       }
-      SObjectField field = model.fieldMap().get(key);
+      SObjectField field = Naming.field(model, key);
       ReformPlan.Part part = field == null ? null : plan.partFor(field);
       if (part != null && part.usable() && (part.describe.isCreateable() || part.describe.isUpdateable())) {
         kept.put(part.describe.getName(), blank ? null : value);
