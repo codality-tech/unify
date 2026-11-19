@@ -8,7 +8,7 @@ Guidance for Claude Code when working in this repository.
 
 The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `inj`.
 
-The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; first beta `Unify@0.1.0-1`, `04tgK000000b77NQAQ`, not promoted and not yet installed anywhere). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
+The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; first release `Unify@0.1.0-1`, `04tgK000000b77NQAQ`, promoted 2026-11-18 and not yet installed anywhere). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
 
 | Need | Where |
 | --- | --- |

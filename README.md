@@ -4,7 +4,7 @@ Solutions built with the Injectify framework. Each one is a working piece of an 
 
 The repository has two halves:
 
-- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its first beta is `Unify@0.1.0-1`.
+- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its first release is `Unify@0.1.0-1`.
 - **`subscriber/` is an org's own side**, deployed as source and never packaged: the org's entry point (`App`), example classes, the tests that check the framework's guides, and the demo.
 
 Code in the examples below is written as it reads in this repository, without a prefix. In an org that installs the package, the solutions' names carry it: `unif.Cloner.copy(...)`, `unif.RollupHandler`, `unif__Rollup_Rule__mdt`.
@@ -22,7 +22,7 @@ Those Apex names are `global`. Everything else in the package is its own busines
 
 ## Install
 
-Both packages are in beta, so they install in a scratch org or a sandbox, not in production. Injectify first, then Unify:
+Both packages are released and install in any org. Injectify first, then Unify:
 
 ```bash
 sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
@@ -479,7 +479,7 @@ py scripts/demo/run.py 01
 
 ## Working on it
 
-The Injectify package must be installed in the org first (a beta, so a scratch org or a sandbox). Then both halves are deployed as source, to an org without a namespace:
+The Injectify package must be installed in the org first. Then both halves are deployed as source, to an org without a namespace:
 
 ```bash
 sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
