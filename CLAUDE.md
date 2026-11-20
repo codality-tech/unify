@@ -8,7 +8,7 @@ Guidance for Claude Code when working in this repository.
 
 The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `inj`.
 
-The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; first release `Unify@0.1.0-1`, `04tgK000000b77NQAQ`, promoted 2026-11-18; installed in one org besides this one on 2026-11-19, where `reformPanel` was used on an app page with a stored blueprint; the other solutions are untried as installed). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
+The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify, from version 0.2.0 on `Injectify@0.4.0-1`; first release `Unify@0.1.0-1`, `04tgK000000b77NQAQ`, promoted 2026-11-18; installed in one org besides this one on 2026-11-19, where `reformPanel` was used on an app page with a stored blueprint; the other solutions are untried as installed). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
 
 | Need | Where |
 | --- | --- |
@@ -59,7 +59,7 @@ subscriber/main/default/    AN ORG'S OWN SIDE (source only)
 
 These are all proven by code in this repository.
 
-- **Read and write through the framework.** Outside tests, every query is an `inj.IQuery` (or an aggregate query or a search) and every save is a unit of work: no `[SELECT ...]`, no `Database.query`, no bare `insert`/`update`/`delete`. An inline query never reaches the application's scheme, so sharing, user mode and `MockScheme` do not apply to it. The exceptions: tests (setting records up, checking what was saved), the scheme classes, and a query the framework cannot express (a semi-join today), with a comment saying so. Conditions and fields reach through lookups: `App.s.eq(new List<SObjectField>{ Contact.AccountId, Account.Industry }, 'Energy')`.
+- **Read and write through the framework.** Outside tests, every query is an `inj.IQuery` (or an aggregate query or a search) and every save is a unit of work: no `[SELECT ...]`, no `Database.query`, no bare `insert`/`update`/`delete`. An inline query never reaches the application's scheme, so sharing, user mode and `MockScheme` do not apply to it. The exceptions: tests (setting records up, checking what was saved), the scheme classes, and a query the framework cannot express, with a comment saying so. (A semi-join it can express, from Injectify 0.4.0: `App.s.iin(Account.Id, innerQuery)`.) Conditions and fields reach through lookups: `App.s.eq(new List<SObjectField>{ Contact.AccountId, Account.Industry }, 'Energy')`.
 - Prefix every package type: `inj.IQuery`, `inj.BaseDomain`.
 - Registry keys are `Account.class`, not `Account.SObjectType`.
 - Query and domain classes are `global class`, with a `global` no-argument constructor. Hook overrides (`onBeforeUpsert`, `getDefaultFields`) can be `public override`.

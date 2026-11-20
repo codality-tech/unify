@@ -239,7 +239,7 @@ A plan is a tree of `Clone_Step__mdt` records. The step with no parent starts th
 | Parent Step, Lookup Field | The step this one sits under, and the lookup that points at that step's object: `Deal`, `OpportunityId`. Both blank on the step that starts a plan. |
 | Filter | Optional. Which of the related records are copied, in SOQL's `WHERE` syntax: `IsPrimary = TRUE` |
 | Leave Out | Optional. Fields not to copy, separated by commas |
-| Set Values | Optional. Values every copy is given, written as a condition the copy must meet: `StageName = 'Prospecting' AND Probability = 10` |
+| Set Values | Optional. Values every copy is given, written as a condition the copy must meet: `StageName = 'Prospecting' AND Probability = 10`. A date is written as a date (`CloseDate = 2026-12-31`); a date literal such as `TODAY` is a range and is refused |
 | Name Suffix | Optional. Added after the name of each copy: `(copy)` |
 | Active | An inactive step is ignored, along with every step beneath it |
 

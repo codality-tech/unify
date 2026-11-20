@@ -109,6 +109,10 @@ private class ClonePlanTest {
     Assert.areEqual(notPlain, problemsOf(new List<CloneStep>{ firm().setting('Owner.Name = \'Someone\'') }));
     String unreadable = problemsOf(new List<CloneStep>{ firm().setting('Rating =') });
     Assert.isTrue(unreadable.startsWith('Step Firm: values: '), unreadable);
+    Assert.areEqual(
+      'Step People: values: Birthdate takes a date such as 2026-12-31, not the date literal TODAY',
+      problemsOf(new List<CloneStep>{ firm(), people().setting('Birthdate = TODAY') })
+    );
   }
 
   @IsTest

@@ -160,6 +160,12 @@ public class ClonePlan {
         }
         for (inj.IFieldCondition setting : compiled.getFieldConditions()) {
           SObjectField field = setting.path().terminus();
+          // A date literal is a range of days, read when a condition is tested, not one value to write.
+          if (setting.value() instanceof inj.IDateLiteral) {
+            values.clear();
+            wrong.add('values: ' + field + ' takes a date such as 2026-12-31, not the date literal ' + ((inj.IDateLiteral) setting.value()).toSoql());
+            return;
+          }
           Object fitted = fit(field, setting.value());
           model.token().newSObject().put(field, fitted);
           values.put(field, fitted);
