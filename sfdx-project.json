@@ -4,8 +4,8 @@
       "path": "force-app",
       "default": true,
       "package": "Unify",
-      "versionName": "ver 0.2.0",
-      "versionNumber": "0.2.0.NEXT",
+      "versionName": "ver 0.2.1",
+      "versionNumber": "0.2.1.NEXT",
       "versionDescription": "Solutions built on the Injectify framework: forms, rollups, cloning and import, each driven by metadata.",
       "dependencies": [
         {
