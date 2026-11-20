@@ -29,7 +29,7 @@ sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
 sf package install --package 04tgK000000b77NQAQ --target-org <alias> --wait 20
 ```
 
-The build ran the package's Apex tests in its namespace. The package has not yet been installed in an org of its own, so the components and tabs are untried as installed.
+The build ran the package's Apex tests in its namespace. The package has since been installed in an org of its own, and Reform has been used there as installed: `reformPanel` on an app page, drawing a form and a table for that org's own object from a stored blueprint, with a lookup, a rule and a merge field through a lookup, a save and a refused save. Rollup, Clone, Import and the Reform Showcase tab are still untried as installed.
 
 > **Status:** early. Reform is rebuilt on the current framework: server side and Lightning components, both tested. Rollup and Clone are new: server side only, tested. Import is new: server side and a Lightning component, both tested.
 
