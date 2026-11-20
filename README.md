@@ -4,7 +4,7 @@ Solutions built with the Injectify framework. Each one is a working piece of an 
 
 The repository has two halves:
 
-- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its first release is `Unify@0.1.0-1`.
+- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its current release is `Unify@0.2.0-1`, built on Injectify 0.4.0; the first was `Unify@0.1.0-1`.
 - **`subscriber/` is an org's own side**, deployed as source and never packaged: the org's entry point (`App`), example classes, the tests that check the framework's guides, and the demo.
 
 Code in the examples below is written as it reads in this repository, without a prefix. In an org that installs the package, the solutions' names carry it: `unif.Cloner.copy(...)`, `unif.RollupHandler`, `unif__Rollup_Rule__mdt`.
@@ -25,11 +25,11 @@ Those Apex names are `global`. Everything else in the package is its own busines
 Both packages are released and install in any org. Injectify first, then Unify:
 
 ```bash
-sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
-sf package install --package 04tgK000000b77NQAQ --target-org <alias> --wait 20
+sf package install --package 04tgK000000bMZRQA2 --target-org <alias> --wait 20
+sf package install --package 04tgK000000bMcfQAE --target-org <alias> --wait 20
 ```
 
-The build ran the package's Apex tests in its namespace. The package has since been installed in an org of its own, and Reform has been used there as installed: `reformPanel` on an app page, drawing a form and a table for that org's own object from a stored blueprint, with a lookup, a rule and a merge field through a lookup, a save and a refused save. Rollup, Clone, Import and the Reform Showcase tab are still untried as installed.
+The build ran the package's Apex tests in its namespace. Versions 0.1.0 and 0.2.0 have each been installed in an org of their own, and Reform has been used there as installed: `reformPanel` on an app page, drawing a form and a table for that org's own object from a stored blueprint, with a lookup, a rule and a merge field through a lookup, a save and a refused save. Rollup, Clone, Import and the Reform Showcase tab are still untried as installed.
 
 > **Status:** early. Reform is rebuilt on the current framework: server side and Lightning components, both tested. Rollup and Clone are new: server side only, tested. Import is new: server side and a Lightning component, both tested.
 
@@ -482,7 +482,7 @@ py scripts/demo/run.py 01
 The Injectify package must be installed in the org first. Then both halves are deployed as source, to an org without a namespace:
 
 ```bash
-sf package install --package 04tgK000000aq05QAA --target-org <alias> --wait 20
+sf package install --package 04tgK000000bMZRQA2 --target-org <alias> --wait 20
 sf project deploy start -d force-app -d subscriber --ignore-conflicts
 sf apex test run -l RunLocalTests -c
 ```
