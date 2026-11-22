@@ -4,7 +4,7 @@ Solutions built with the Injectify framework. Each one is a working piece of an 
 
 The repository has two halves:
 
-- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its current release is `Unify@0.2.0-1`, built on Injectify 0.4.0; the first was `Unify@0.1.0-1`. `Unify@0.3.0-2` (2026-11-22, a beta, not promoted) adds a lookup that makes its record and an Open action on lists, and saves a row whose parent is set once.
+- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its current release is `Unify@0.2.0-1`, built on Injectify 0.4.0; the first was `Unify@0.1.0-1`. `Unify@0.3.0-3` (2026-11-22, a beta, not promoted) adds a lookup that makes its record and an Open action on lists, saves a row whose parent is set once, and ships the `Reform` permission set a user of the components needs.
 - **`subscriber/` is an org's own side**, deployed as source and never packaged: the org's entry point (`App`), example classes, the tests that check the framework's guides, and the demo.
 
 Code in the examples below is written as it reads in this repository, without a prefix. In an org that installs the package, the solutions' names carry it: `unif.Cloner.copy(...)`, `unif.RollupHandler`, `unif__Rollup_Rule__mdt`.
@@ -117,7 +117,7 @@ A form is computed from the values a component holds and is never written until 
 
 ### Access
 
-A user of a Reform form or table needs access to the Apex class `ReformApi` (`unif__ReformApi` in a subscriber org): grant it in the org's own permission set, as the Reform Showcase permission set does for the showcase. Without it, the panel says "You do not have access to the Apex class named 'ReformApi'".
+A user of a Reform form or table needs the `Reform` permission set (`unif__Reform` in a subscriber org), from version 0.3.0. It grants the one thing the components need, access to the Apex class `ReformApi`, and nothing else. Assign it directly or put it in a permission set group with the org's own sets, so that a later version can add to it without the org's sets changing. Without it, the panel says "You do not have access to the Apex class named 'ReformApi'". An administrator never sees that message: Author Apex opens every class.
 
 Reads and writes both run as the user. Reads apply sharing and field-level security, and a field or column the user cannot see is left out. Writes go through the framework's unit of work in user mode, so the platform refuses whatever the user may not do. Before that the engine checks the user's object and field permissions and their access to the record, so a refusal says what was refused, and it writes only the fields the blueprint names. A blueprint can also set `createable`, `updateable` or `deleteable` to `false`.
 

@@ -8,7 +8,7 @@ Guidance for Claude Code when working in this repository.
 
 The framework's source is the sibling repository `../injectify`. Its package is installed here under the namespace `inj`.
 
-The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; current release `Unify@0.2.0-1`, `04tgK000000bMcfQAE`, promoted 2026-11-20 on `Injectify@0.4.0-1`; first release `Unify@0.1.0-1`, promoted 2026-11-18; betas `Unify@0.3.0-1` (`04tgK000000bWNVQA2`) and `Unify@0.3.0-2` (`04tgK000000bWYnQAM`, the same plus the fix for a set-once parent), built 2026-11-22 with Reform's lookup `create` and the list's Open action, not promoted; each installed in one org besides this one, where `reformPanel` was used on an app page with a stored blueprint; the other solutions are untried as installed). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
+The repository has two halves. **`force-app/` is the Unify package** (unlocked, namespace `unif`, depends on Injectify; current release `Unify@0.2.0-1`, `04tgK000000bMcfQAE`, promoted 2026-11-20 on `Injectify@0.4.0-1`; first release `Unify@0.1.0-1`, promoted 2026-11-18; betas `Unify@0.3.0-1` (`04tgK000000bWNVQA2`), `Unify@0.3.0-2` (`04tgK000000bWYnQAM`, the same plus the fix for a set-once parent) and `Unify@0.3.0-3` (`04tgK000000bX6fQAE`, the same plus the `Reform` permission set), built 2026-11-22 with Reform's lookup `create` and the list's Open action, not promoted; each installed in one org besides this one, where `reformPanel` was used on an app page with a stored blueprint; the other solutions are untried as installed). **`subscriber/` is an org's own side**: source only, never packaged. In the scratch org both are deployed as source with no namespace, so neither side writes a `unif.` prefix.
 
 | Need | Where |
 | --- | --- |
@@ -34,7 +34,7 @@ force-app/main/default/     THE PACKAGE
   customMetadata/     The six sample rollup rules, the two steps of the sample clone plan, and the two
                       sample import formats with their columns
   triggers/           ReformBlueprintTrigger, RollupSampleChildTrigger, RollupSampleParentTrigger
-  permissionsets/     Import, Reform_Showcase, Rollup_Sample
+  permissionsets/     Import, Reform (what a user of the Reform components needs), Reform_Showcase, Rollup_Sample
 
 subscriber/main/default/    AN ORG'S OWN SIDE (source only)
   classes/            App (the org's entry point), Accounts, ExampleService, Scheme30/50/64,

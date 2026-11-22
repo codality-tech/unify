@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Lets a person use Reform&apos;s forms and tables. What they can see and change on them still depends on their own access to the objects, fields and records.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Reform</label>
+    <classAccesses>
+        <apexClass>ReformApi</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+</PermissionSet>
