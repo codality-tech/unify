@@ -11,6 +11,8 @@
  *     "elements": [ { "width": 6, "visible": "Amount > 1000",
  *                     "field": { "name": "NextStep", "label": "...", "required": true,
  *                                "defaultValue": "...", "fixedValue": "...", "hidden": false } },
+ *                   { "field": { "name": "ContactId",
+ *                                "create": { "blueprint": "new_person", "fill": "PersonContactId" } } },
  *                   { "heading": { "content": "About {!Account.Name}" } },
  *                   { "richtext": { "content": "<b>{!Owner.Name}</b>" } },
  *                   { } ],
@@ -28,6 +30,13 @@ public class ReformDefinition {
     public Boolean hidden;
     public Boolean createable;
     public Boolean updateable;
+    /**
+     * For a lookup: the stored blueprint of a record the user may make from the lookup instead of
+     * picking one, saved with this record. Fill is the new record's field the lookup takes, when not
+     * its Id: a Person Account fills a Contact lookup from its PersonContactId.
+     */
+    public String createBlueprint;
+    public String createFill;
   }
 
   /** One slot of a form. At most one of field, heading and richText is set; none means a spacer. */
@@ -207,6 +216,11 @@ public class ReformDefinition {
     // A fixed or default value may be blank on purpose (fix the field to empty), so only null is "unset".
     spec.fixedValue = raw.get('fixedValue') == null ? null : String.valueOf(raw.get('fixedValue'));
     spec.defaultValue = raw.get('defaultValue') == null ? null : String.valueOf(raw.get('defaultValue'));
+    if (raw.get('create') != null) {
+      Map<String, Object> create = keyed(raw.get('create'));
+      spec.createBlueprint = text(create.get('blueprint')) ?? '';
+      spec.createFill = text(create.get('fill'));
+    }
     return spec;
   }
 
@@ -225,7 +239,8 @@ public class ReformDefinition {
     return value instanceof List<Object> ? (List<Object>) value : new List<Object>();
   }
 
-  private static Map<String, Object> keyed(Object value) {
+  /** A map from a component or untyped JSON, whichever kind of map it arrived as. */
+  public static Map<String, Object> keyed(Object value) {
     Map<String, Object> byName = new Map<String, Object>();
     if (value instanceof Map<String, Object>) {
       byName = (Map<String, Object>) value;

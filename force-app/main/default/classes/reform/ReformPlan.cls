@@ -6,6 +6,10 @@
  * and shows or hides an element in memory), and merge fields and columns become paths, which can
  * cross lookups.
  *
+ * A lookup may name a stored blueprint of a record to make instead of picking one ("create"). That
+ * blueprint is compiled here too, as a plan of its own, and is told it is one: a record made from a
+ * lookup cannot make another, so a blueprint that names itself does not compile forever.
+ *
  * Nothing here throws for a mistake in a blueprint. A part or column that cannot be resolved keeps
  * its problems and is left out of the work, so the rest of the form or table still renders.
  */
@@ -42,6 +46,9 @@ public with sharing class ReformPlan {
     public Object defaultValue;
     /** True when a rule or merge field reads this field, so a form should recompute when it changes. */
     public Boolean reactive = false;
+    /** For a lookup that can make its record: the plan of the record made, and the field of it the lookup takes (null: its Id). */
+    public ReformPlan creates;
+    public SObjectField fill;
 
     // Heading and rich text parts
     public String content;
@@ -76,12 +83,21 @@ public with sharing class ReformPlan {
   public Map<SObjectField, Set<inj.IPath>> parentPaths = new Map<SObjectField, Set<inj.IPath>>();
   /** The object's own fields that a rule or merge field reads, lookups walked through included. */
   public Set<SObjectField> fieldsRead = new Set<SObjectField>();
+  /** Every path a rule or merge field reads, as seen from the object: Parent.Subject. */
+  public Set<inj.IPath> pathsRead = new Set<inj.IPath>();
   public List<String> problems = new List<String>();
+  /** True for the plan of a record made from another form's lookup. */
+  public Boolean madeFromLookup = false;
 
   private Map<SObjectField, Part> partByField = new Map<SObjectField, Part>();
 
   public static ReformPlan compile(ReformDefinition definition) {
+    return compile(definition, false);
+  }
+
+  private static ReformPlan compile(ReformDefinition definition, Boolean madeFromLookup) {
     ReformPlan plan = new ReformPlan();
+    plan.madeFromLookup = madeFromLookup;
     plan.definition = definition;
     plan.problems.addAll(definition.problems);
     plan.bindObject();
@@ -204,6 +220,60 @@ public with sharing class ReformPlan {
     // Required by the schema unless the blueprint says otherwise: must be given on create.
     part.required = part.describe.isCreateable() && !part.describe.isNillable() && !part.describe.isDefaultedOnCreate();
     overlay(part, spec);
+    if (spec.createBlueprint != null) {
+      bindCreate(part, spec);
+    }
+  }
+
+  // The record a lookup can make, and which of its fields fills the lookup. The record is the
+  // lookup's object, filled with its Id, or another object with a field that points at the lookup's.
+  private void bindCreate(Part part, ReformDefinition.FieldSpec spec) {
+    String lookup = part.describe.getName();
+    if (part.describe.getType() != Schema.DisplayType.REFERENCE) {
+      part.problems.add(lookup + ' is not a lookup, so it cannot make a record (create)');
+      return;
+    }
+    if (madeFromLookup) {
+      part.problems.add('A record made from a lookup cannot make another (create on ' + lookup + ')');
+      return;
+    }
+    if (String.isBlank(spec.createBlueprint)) {
+      part.problems.add('create on ' + lookup + ' needs the name of a stored blueprint');
+      return;
+    }
+    ReformDefinition target = ReformDefinition.resolve(new Map<String, Object>{ 'name' => spec.createBlueprint });
+    if (target.objectName == null) {
+      part.problems.add('There is no stored blueprint named ' + spec.createBlueprint + ' (create on ' + lookup + ')');
+      return;
+    }
+    ReformPlan made = compile(target, true);
+    if (!made.isUsable() || !made.allProblems().isEmpty()) {
+      part.problems.add('The blueprint ' + spec.createBlueprint + ' cannot make a record for ' + lookup + ': ' + String.join(made.allProblems(), '; '));
+      return;
+    }
+    List<SObjectType> pointsAt = part.describe.getReferenceTo();
+    SObjectType madeType = made.model.token();
+    if (spec.createFill == null) {
+      if (!pointsAt.contains(madeType)) {
+        part.problems.add(
+          'A ' + madeType + ' is not a ' + pointsAt[0] + ': name the field of the new ' + madeType + ' that fills ' + lookup + ' (fill)'
+        );
+        return;
+      }
+    } else {
+      part.fill = Naming.field(made.model, spec.createFill);
+      List<SObjectType> fillPointsAt = part.fill?.getDescribe().getReferenceTo() ?? new List<SObjectType>();
+      Boolean fits = false;
+      for (SObjectType each : fillPointsAt) {
+        fits = fits || pointsAt.contains(each);
+      }
+      if (!fits) {
+        part.problems.add(made.model.name() + '.' + spec.createFill + ' is not a field that points at a ' + pointsAt[0] + ', so it cannot fill ' + lookup);
+        part.fill = null;
+        return;
+      }
+    }
+    part.creates = made;
   }
 
   // What a blueprint may say about a field, over what the schema says.
@@ -340,6 +410,7 @@ public with sharing class ReformPlan {
         read.addAll(model.compileCondition(part.showWhen).getPaths());
       }
     }
+    pathsRead.addAll(read);
     for (inj.IPath path : read) {
       List<SObjectField> steps = path.fieldSequence();
       fieldsRead.add(steps[0]);

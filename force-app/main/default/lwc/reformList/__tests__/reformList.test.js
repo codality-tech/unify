@@ -1,11 +1,25 @@
 import { createElement } from 'lwc';
 import LightningConfirm from 'lightning/confirm';
+import { navigatedTo } from 'lightning/navigation';
 import ReformList from 'c/reformList';
 import listPage from '@salesforce/apex/ReformApi.table';
 import removeRecord from '@salesforce/apex/ReformApi.remove';
 
 jest.mock('@salesforce/apex/ReformApi.table', () => ({ default: jest.fn() }), { virtual: true });
 jest.mock('@salesforce/apex/ReformApi.remove', () => ({ default: jest.fn() }), { virtual: true });
+// The platform's stub navigates nowhere; this one remembers where it was asked to go.
+jest.mock('lightning/navigation', () => {
+    const Navigate = Symbol('Navigate');
+    const navigatedTo = jest.fn();
+    const NavigationMixin = (Base) =>
+        class extends Base {
+            [Navigate](reference) {
+                navigatedTo(reference);
+            }
+        };
+    NavigationMixin.Navigate = Navigate;
+    return { NavigationMixin, navigatedTo };
+});
 
 const BLUEPRINT = { name: 'deals' };
 
@@ -82,7 +96,7 @@ describe('c-reform-list', () => {
             ['Created', 'c3', 'date'],
             [undefined, undefined, 'action']
         ]);
-        expect(table.columns[4].typeAttributes.rowActions.map((action) => action.name)).toEqual(['edit', 'delete']);
+        expect(table.columns[4].typeAttributes.rowActions.map((action) => action.name)).toEqual(['open', 'edit', 'delete']);
         expect(table.data).toEqual([
             { Id: '006A', c0: 'First', c1: 'Acme', c2: 0.25, c3: '2030-01-15T10:00:00.000Z' },
             { Id: '006B', c0: 'Second', c1: null, c2: null, c3: '2030-01-16T10:00:00.000Z' }
@@ -119,8 +133,17 @@ describe('c-reform-list', () => {
         const root = element.shadowRoot;
 
         expect(root.querySelector('[data-id="new"]')).toBeNull();
-        expect(root.querySelector('lightning-datatable').columns.some((column) => column.type === 'action')).toBe(false);
+        const actions = root.querySelector('lightning-datatable').columns.find((column) => column.type === 'action');
+        expect(actions.typeAttributes.rowActions).toEqual([{ label: 'Open', name: 'open' }]);
         expect(root.querySelector('[data-id="range"]')).toBeNull();
+    });
+
+    it('opens a row on its record page', async () => {
+        const element = await mount();
+
+        rowAction(element, 'open', { Id: '006B' });
+
+        expect(navigatedTo).toHaveBeenCalledWith({ type: 'standard__recordPage', attributes: { recordId: '006B', actionName: 'view' } });
     });
 
     it('asks its host for a new record or an edit', async () => {

@@ -11,6 +11,11 @@
  * the user's object and field permissions and their access to the record itself, so a refusal
  * comes with a message a person can act on, and it writes only fields the blueprint names and the
  * user may write.
+ *
+ * A lookup whose element can make its record ("create") is sent that record's values in place of an
+ * Id, as { "create": { ... } }. On save the new record is written first, through its own plan and
+ * with the same checks, and the lookup is filled from it; a savepoint takes both back if either is
+ * refused, so a refused form leaves no record behind.
  */
 public with sharing class ReformEngine {
   public class ReformException extends Exception {
@@ -43,14 +48,17 @@ public with sharing class ReformEngine {
    * save, the record is written first and the form is the saved record's.
    */
   public ReformView.Form form(Map<String, Object> sent, Boolean save) {
-    Map<String, Object> given = accepted(sent);
+    Map<SObjectField, Map<String, Object>> toMake = new Map<SObjectField, Map<String, Object>>();
+    Map<String, Object> given = accepted(withoutRecordsToMake(sent, toMake));
     SObject offered = model.spawnRecord(given);
     Boolean editing = offered.Id != null;
     SObject working = offered;
     if (editing) {
       working = stored(offered.Id);
       for (String fieldName : given.keySet()) {
-        if (fieldName != 'Id') {
+        // A field set once, when the record is made (a junction row's parent), cannot even be put
+        // on a stored record in memory: the platform throws "not editable".
+        if (fieldName != 'Id' && plan.partFor(Naming.field(model, fieldName)).describe.isUpdateable()) {
           working.put(fieldName, offered.get(fieldName));
         }
       }
@@ -58,12 +66,84 @@ public with sharing class ReformEngine {
     settle(working, editing, given.keySet());
     attachParents(working);
     if (save == true) {
-      Id savedId = write(working, editing, given.keySet());
+      Id savedId = toMake.isEmpty() ? write(working, editing, given.keySet()) : writeWithMade(working, editing, given.keySet(), toMake);
       ReformView.Form afterSave = form(new Map<String, Object>{ 'Id' => savedId }, false);
       afterSave.saved = true;
       return afterSave;
     }
     return view(working, editing);
+  }
+
+  /** Writes a new record from the values a component holds, as a form's save would. Returns its Id. */
+  public Id create(Map<String, Object> sent) {
+    Map<String, Object> given = accepted(sent);
+    given.remove('Id');
+    SObject working = model.spawnRecord(given);
+    settle(working, false, given.keySet());
+    attachParents(working);
+    return write(working, false, given.keySet());
+  }
+
+  // The sent values without the records to make from lookups, which are put in toMake. A record to
+  // make is sent under its lookup's name as { "create": { ... } }; a lookup that cannot make one
+  // is refused rather than ignored, since the user meant something by it.
+  private Map<String, Object> withoutRecordsToMake(Map<String, Object> sent, Map<SObjectField, Map<String, Object>> toMake) {
+    if (sent == null) {
+      return null;
+    }
+    Map<String, Object> rest = new Map<String, Object>();
+    for (String key : sent.keySet()) {
+      Object value = sent.get(key);
+      if (!(value instanceof Map<String, Object> || value instanceof Map<Object, Object>)) {
+        rest.put(key, value);
+        continue;
+      }
+      SObjectField field = Naming.field(model, key);
+      ReformPlan.Part part = field == null ? null : plan.partFor(field);
+      if (part == null || !part.usable() || part.creates == null) {
+        throw new ReformException(key + ' cannot make a record here');
+      }
+      toMake.put(part.field, ReformDefinition.keyed(ReformDefinition.keyed(value).get('create')));
+    }
+    return rest;
+  }
+
+  // Makes each record a lookup asked for, fills the lookup from it, then writes this record; all of
+  // it or none. Returns this record's Id.
+  private Id writeWithMade(SObject working, Boolean editing, Set<String> given, Map<SObjectField, Map<String, Object>> toMake) {
+    Set<String> touched = new Set<String>(given);
+    Savepoint before = Database.setSavepoint();
+    try {
+      for (SObjectField lookup : toMake.keySet()) {
+        ReformPlan.Part part = plan.partFor(lookup);
+        if (!(editing ? part.describe.isUpdateable() : part.describe.isCreateable())) {
+          throw new ReformException('You cannot set ' + part.label + ' here');
+        }
+        ReformEngine maker = new ReformEngine(part.creates);
+        Id madeId = maker.create(toMake.get(lookup));
+        working.put(part.field, part.fill == null ? madeId : maker.madeValue(madeId, part.fill));
+        touched.add(part.describe.getName());
+      }
+      attachParents(working);
+      return write(working, editing, touched);
+    } catch (Exception refused) {
+      Database.rollback(before);
+      throw refused;
+    }
+  }
+
+  // A field of a record just made, read back as the user: a Person Account's PersonContactId exists
+  // only once the account is saved.
+  private Object madeValue(Id recordId, SObjectField field) {
+    inj.IQuery one = model.query();
+    one.fields().add(new Set<SObjectField>{ field });
+    one.addCondition(Unify.s.condId(new Set<Id>{ recordId }));
+    SObject found = one.withSharing(true).fetch();
+    Object value = found?.get(field);
+    if (value == null) {
+      throw new ReformException('The new ' + plan.label + ' has no ' + field.getDescribe().getLabel());
+    }
+    return value;
   }
 
   // The sent values the blueprint lets through: the Id, and fields that have a usable element and
@@ -105,6 +185,18 @@ public with sharing class ReformEngine {
     }
     inj.IQuery one = model.query();
     one.fields().add(visibleFields);
+    // A parent behind a lookup that is set once is read with the record: it cannot be attached to a
+    // stored record afterwards, and it cannot change in an edit anyway.
+    Set<inj.IPath> throughFixed = new Set<inj.IPath>();
+    for (inj.IPath path : plan.pathsRead) {
+      List<SObjectField> steps = path.fieldSequence();
+      if (steps.size() > 1 && !steps[0].getDescribe().isUpdateable() && path.describe().isAccessible()) {
+        throughFixed.add(path);
+      }
+    }
+    if (!throughFixed.isEmpty()) {
+      one.fields().add(throughFixed);
+    }
     one.addCondition(Unify.s.condId(new Set<Id>{ recordId }));
     SObject found = one.withSharing(true).fetch();
     if (found == null) {
@@ -114,9 +206,14 @@ public with sharing class ReformEngine {
   }
 
   // Fixed values always apply. Defaults apply to a new record, for fields the component did not send.
+  // A stored record keeps the fields that are set once: its parent on a related list is already the
+  // fixed one, and putting it again would throw.
   private void settle(SObject working, Boolean editing, Set<String> given) {
     for (ReformPlan.Part part : plan.parts) {
       if (part.kind != ReformPlan.Kind.FIELD || !part.usable() || part.describe.isCalculated() || part.describe.isAutoNumber()) {
+        continue;
+      }
+      if (part.isFixed && editing && !part.describe.isUpdateable()) {
         continue;
       }
       if (part.isFixed) {
@@ -134,6 +231,9 @@ public with sharing class ReformEngine {
     Map<SObjectType, Set<inj.IPath>> readsByType = new Map<SObjectType, Set<inj.IPath>>();
     Map<SObjectField, SObjectType> typeByLookup = new Map<SObjectField, SObjectType>();
     for (SObjectField lookup : plan.parentPaths.keySet()) {
+      if (working.Id != null && !lookup.getDescribe().isUpdateable()) {
+        continue; // read with the stored record
+      }
       Id parentId = lookup.getDescribe().isAccessible() || working.Id == null ? (Id) working.get(lookup) : null;
       Set<inj.IPath> reads = readable(plan.parentPaths.get(lookup));
       if (parentId == null || reads.isEmpty()) {
@@ -256,6 +356,10 @@ public with sharing class ReformEngine {
           drawn.options = choices(described);
         } else if (shape == Schema.DisplayType.REFERENCE && !described.getReferenceTo().isEmpty()) {
           drawn.lookupTo = String.valueOf(described.getReferenceTo()[0]);
+          if (part.creates != null && !drawn.readOnly && part.creates.model.describe().isCreateable()) {
+            drawn.createBlueprint = part.creates.definition.name;
+            drawn.createLabel = 'New ' + part.creates.label;
+          }
         }
       } else if (part.usable() && part.content != null) {
         drawn.content = merged(part, working);

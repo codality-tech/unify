@@ -118,4 +118,43 @@ describe('c-reform-panel', () => {
         expect(listIn(element)).not.toBeNull();
         expect(listPage).toHaveBeenCalledTimes(3);
     });
+
+    it("enters a record for one of the form's lookups in a form of its own, and hands it back", async () => {
+        const element = await mount({ blueprintName: 'people' });
+        listIn(element).dispatchEvent(new CustomEvent('new'));
+        await flush();
+        const outer = element.shadowRoot.querySelector('[data-id="entry"]');
+
+        outer.dispatchEvent(new CustomEvent('createrecord', { detail: { field: 'AccountId', blueprint: { name: 'new_company' }, label: 'New Account' } }));
+        await flush();
+        const made = element.shadowRoot.querySelector('[data-id="made-entry"]');
+        expect(made.blueprint).toEqual({ name: 'new_company' });
+        expect(made.hideActions).toBe(true);
+        expect(outer.parentElement.className).toContain('slds-hide');
+        expect(element.shadowRoot.querySelector('[data-id="made-use"]').label).toBe('Use this account');
+
+        element.shadowRoot.querySelector('[data-id="made-use"]').click();
+        await flush();
+        expect(element.shadowRoot.querySelector('[data-id="made-entry"]')).toBeNull();
+        expect(outer.parentElement.className).not.toContain('slds-hide');
+
+        await outer.save();
+        expect(computeForm).toHaveBeenLastCalledWith({ blueprint: { name: 'people' }, values: { AccountId: { create: {} } }, save: true });
+    });
+
+    it('goes back to the form without the record when the user backs out of it', async () => {
+        const element = await mount({ blueprintName: 'people' });
+        listIn(element).dispatchEvent(new CustomEvent('new'));
+        await flush();
+        const outer = element.shadowRoot.querySelector('[data-id="entry"]');
+        outer.dispatchEvent(new CustomEvent('createrecord', { detail: { field: 'AccountId', blueprint: { name: 'new_company' }, label: 'New Account' } }));
+        await flush();
+
+        element.shadowRoot.querySelector('[data-id="made-back"]').click();
+        await flush();
+
+        expect(element.shadowRoot.querySelector('[data-id="made-entry"]')).toBeNull();
+        await outer.save();
+        expect(computeForm).toHaveBeenLastCalledWith({ blueprint: { name: 'people' }, values: {}, save: true });
+    });
 });

@@ -7,6 +7,10 @@ import { LightningElement, api } from 'lwc';
  * On a record page, set "parent field" to the lookup that points at the page's record. The panel
  * then lists only that record's children and files new ones under it: a related list drawn from a
  * blueprint.
+ *
+ * When the form offers to make the record a lookup points at ("New Person" beside a Contact lookup),
+ * the panel shows that record's own form in its place, and hands what was entered back to the form,
+ * which saves both together.
  */
 export default class ReformPanel extends LightningElement {
     /** API name of a stored blueprint. */
@@ -22,6 +26,8 @@ export default class ReformPanel extends LightningElement {
 
     entering = false;
     enteringId;
+    // The record being entered for one of the form's lookups: { field, blueprint, useLabel }.
+    making;
 
     built;
     builtFrom;
@@ -62,5 +68,29 @@ export default class ReformPanel extends LightningElement {
     handleDone() {
         this.entering = false;
         this.enteringId = undefined;
+        this.making = undefined;
+    }
+
+    get entryClass() {
+        return this.making ? 'slds-hide' : '';
+    }
+
+    handleMake(event) {
+        const { field, blueprint, label } = event.detail;
+        const noun = (label || 'record').replace(/^New /, '').toLowerCase();
+        this.making = { field, blueprint, useLabel: `Use this ${noun}` };
+    }
+
+    handleMakeBack() {
+        this.making = undefined;
+    }
+
+    handleMakeUse() {
+        const collected = this.template.querySelector('[data-id="made-entry"]').collect();
+        if (!collected) {
+            return;
+        }
+        this.template.querySelector('[data-id="entry"]').useNewRecord(this.making.field, collected.values, collected.summary);
+        this.making = undefined;
     }
 }

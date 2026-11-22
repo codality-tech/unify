@@ -4,7 +4,7 @@ Solutions built with the Injectify framework. Each one is a working piece of an 
 
 The repository has two halves:
 
-- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its current release is `Unify@0.2.0-1`, built on Injectify 0.4.0; the first was `Unify@0.1.0-1`.
+- **`force-app/` is the Unify package** (unlocked, namespace `unif`, depending on Injectify): the four solutions, their sample objects and sample metadata, and `Unify`, the application they run on. Its current release is `Unify@0.2.0-1`, built on Injectify 0.4.0; the first was `Unify@0.1.0-1`. `Unify@0.3.0-2` (2026-11-22, a beta, not promoted) adds a lookup that makes its record and an Open action on lists, and saves a row whose parent is set once.
 - **`subscriber/` is an org's own side**, deployed as source and never packaged: the org's entry point (`App`), example classes, the tests that check the framework's guides, and the demo.
 
 Code in the examples below is written as it reads in this repository, without a prefix. In an org that installs the package, the solutions' names carry it: `unif.Cloner.copy(...)`, `unif.RollupHandler`, `unif__Rollup_Rule__mdt`.
@@ -62,6 +62,23 @@ A blueprint names an object and lists:
 
 A blueprint is stored in a `Reform_Blueprint__c` record, sent by a component, or both: a component that sends `{ "name": "deal_form" }` plus a few keys of its own gets the stored blueprint with those keys laid over it.
 
+### A lookup that makes its record
+
+A lookup can offer to make the record it points at instead of picking one: a new company while entering a contact, a new person while adding them to an account's contacts. The element names a stored blueprint for that record:
+
+```json
+{ "field": { "name": "AccountId", "create": { "blueprint": "new_company" } } }
+{ "field": { "name": "ContactId", "create": { "blueprint": "new_person", "fill": "PersonContactId" } } }
+```
+
+- **In the form.** "New Company" (the made blueprint's label) appears beside the picker. `c-reform-panel` shows that record's own form in place of this one, and "Use this company" brings back a pill in the picker's place. Nothing is saved yet.
+- **On save, both or neither.** One call writes the new record first, through its own blueprint and with the same checks, then fills the lookup from it and writes this record. A savepoint takes both back if either is refused, so a refused form leaves no record behind.
+- **`fill`** is the field of the new record that fills the lookup, when that is not its Id. A Person Account fills a Contact lookup (an `AccountContactRelation`'s `ContactId`) from its `PersonContactId`, which exists only once the account is saved, so it is read back after the write.
+- **Checked when the blueprint is saved.** The named blueprint must be stored and usable. Its object must be the lookup's, or `fill` must name a field of it that points at the lookup's. A record made from a lookup cannot make another, so a blueprint that names itself does not loop.
+- **Only where the user may.** The offer is drawn only when the user can change the lookup and create the record.
+
+`ReformCreateTest` covers each of these.
+
 ### What the framework does here
 
 | Reform needs | The framework provides |
@@ -89,9 +106,9 @@ A blueprint is stored in a `Reform_Blueprint__c` record, sent by a component, or
 
 | Component | Does |
 | --- | --- |
-| `c-reform-entry` | The form. Draws what the server computes, with an input to suit each field's type, and asks again when a `reactive` field changes. Fires `saved` and `cancel`. |
-| `c-reform-list` | The table: the blueprint's columns, a page at a time, with New, Edit and Delete where the blueprint and the user's permissions allow. Fires `new` and `edit`. |
-| `c-reform-panel` | The two together. Add it to a page in the Lightning App Builder and give it a stored blueprint's API name. On a record page, also give it the lookup that points at the page's record (`AccountId`) and it becomes a related list: only that record's children, and new ones filed under it. |
+| `c-reform-entry` | The form. Draws what the server computes, with an input to suit each field's type, and asks again when a `reactive` field changes. Fires `saved` and `cancel`, and `createrecord` when the user asks to make a lookup's record. |
+| `c-reform-list` | The table: the blueprint's columns, a page at a time, with Open (the record's page), New, Edit and Delete where the blueprint and the user's permissions allow. Fires `new` and `edit`. |
+| `c-reform-panel` | The two together. Add it to a page in the Lightning App Builder and give it a stored blueprint's API name. On a record page, also give it the lookup that points at the page's record (`AccountId`) and it becomes a related list: only that record's children, and new ones filed under it. A parent that can only be set when the row is made, such as a junction row's, is written then and left as stored on an edit. Panels on a record's page and on its children's pages let a user go down from a record to its children and theirs. |
 | `c-reform-showcase` | Three sample blueprints to try, on the **Reform Showcase** tab. Assign the `Reform Showcase` permission set to see the tab. |
 
 A component is given a blueprint as an object: a whole definition, `{ name: 'deal_form' }` for a stored one, or a stored one's name plus keys to lay over it.

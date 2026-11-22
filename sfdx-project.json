@@ -4,8 +4,8 @@
       "path": "force-app",
       "default": true,
       "package": "Unify",
-      "versionName": "ver 0.2.1",
-      "versionNumber": "0.2.1.NEXT",
+      "versionName": "ver 0.3.0",
+      "versionNumber": "0.3.0.NEXT",
       "versionDescription": "Solutions built on the Injectify framework: forms, rollups, cloning and import, each driven by metadata.",
       "dependencies": [
         {
@@ -25,6 +25,8 @@
     "Injectify@0.4.0-1": "04tgK000000bMZRQA2",
     "Unify": "0HogK0000005hqjSAA",
     "Unify@0.1.0-1": "04tgK000000b77NQAQ",
-    "Unify@0.2.0-1": "04tgK000000bMcfQAE"
+    "Unify@0.2.0-1": "04tgK000000bMcfQAE",
+    "Unify@0.3.0-1": "04tgK000000bWNVQA2",
+    "Unify@0.3.0-2": "04tgK000000bWYnQAM"
   }
 }

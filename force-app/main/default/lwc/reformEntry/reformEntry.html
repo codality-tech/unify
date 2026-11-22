@@ -30,19 +30,43 @@
                             data-id="rich-text"
                         ></lightning-formatted-rich-text>
 
-                        <lightning-record-picker
-                            lwc:elseif={part.isLookup}
-                            label={part.label}
-                            object-api-name={part.lookupTo}
-                            value={part.lookupValue}
-                            required={part.required}
-                            disabled={part.readOnly}
-                            field-level-help={part.helpText}
-                            data-field={part.name}
-                            data-kind={part.kind}
-                            data-reactive={part.reactive}
-                            onchange={handleChange}
-                        ></lightning-record-picker>
+                        <div lwc:elseif={part.isLookup}>
+                            <template lwc:if={part.isMade}>
+                                <span class="slds-form-element__label" data-id="made-label">
+                                    <abbr lwc:if={part.required} class="slds-required" title="required">*</abbr>{part.label}
+                                </span>
+                                <div>
+                                    <lightning-pill
+                                        label={part.madeSummary}
+                                        data-field={part.name}
+                                        data-id="made"
+                                        onremove={handleRemoveMade}
+                                    ></lightning-pill>
+                                </div>
+                            </template>
+                            <template lwc:else>
+                                <lightning-record-picker
+                                    label={part.label}
+                                    object-api-name={part.lookupTo}
+                                    value={part.lookupValue}
+                                    required={part.required}
+                                    disabled={part.readOnly}
+                                    field-level-help={part.helpText}
+                                    data-field={part.name}
+                                    data-kind={part.kind}
+                                    data-reactive={part.reactive}
+                                    onchange={handleChange}
+                                ></lightning-record-picker>
+                                <lightning-button
+                                    lwc:if={part.canMake}
+                                    variant="base"
+                                    label={part.createLabel}
+                                    data-field={part.name}
+                                    data-id="make"
+                                    onclick={handleMake}
+                                ></lightning-button>
+                            </template>
+                        </div>
 
                         <lightning-combobox
                             lwc:elseif={part.isPicklist}

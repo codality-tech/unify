@@ -231,6 +231,75 @@ describe('c-reform-entry', () => {
         expect(computeForm).toHaveBeenLastCalledWith({ blueprint: BLUEPRINT, values: { Id: DEAL_ID }, save: false });
     });
 
+    it('offers to make the record a lookup points at, and saves it with the form', async () => {
+        const offered = view();
+        offered.parts[4] = part({
+            name: 'AccountId',
+            label: 'Account',
+            dataType: 'REFERENCE',
+            lookupTo: 'Account',
+            value: null,
+            createBlueprint: 'new_company',
+            createLabel: 'New Account'
+        });
+        computeForm.mockResolvedValue(offered);
+        const element = await mount();
+        const asked = jest.fn();
+        element.addEventListener('createrecord', asked);
+
+        const make = element.shadowRoot.querySelector('[data-id="make"]');
+        expect(make.label).toBe('New Account');
+        make.click();
+        expect(asked.mock.calls[0][0].detail).toEqual({ field: 'AccountId', blueprint: { name: 'new_company' }, label: 'New Account' });
+
+        element.useNewRecord('AccountId', { Name: 'Acme' }, 'Acme');
+        await flush();
+        expect(element.shadowRoot.querySelector('lightning-record-picker')).toBeNull();
+        expect(element.shadowRoot.querySelector('[data-id="made"]').label).toBe('Acme');
+
+        await element.save();
+        expect(computeForm).toHaveBeenLastCalledWith({ blueprint: BLUEPRINT, values: { AccountId: { create: { Name: 'Acme' } } }, save: true });
+    });
+
+    it('goes back to picking when the record to make is removed', async () => {
+        const offered = view();
+        offered.parts[4] = part({ name: 'AccountId', label: 'Account', dataType: 'REFERENCE', lookupTo: 'Account', value: null, createBlueprint: 'x', createLabel: 'New Account' });
+        computeForm.mockResolvedValue(offered);
+        const element = await mount();
+        element.useNewRecord('AccountId', { Name: 'Acme' }, 'Acme');
+        await flush();
+
+        element.shadowRoot.querySelector('[data-id="made"]').dispatchEvent(new CustomEvent('remove'));
+        await flush();
+
+        expect(element.shadowRoot.querySelector('[data-id="made"]')).toBeNull();
+        expect(element.shadowRoot.querySelector('lightning-record-picker')).not.toBeNull();
+        await element.save();
+        expect(computeForm).toHaveBeenLastCalledWith({ blueprint: BLUEPRINT, values: {}, save: true });
+    });
+
+    it('does not offer to make a record for a lookup the user cannot change', async () => {
+        const offered = view();
+        offered.parts[4] = part({ name: 'AccountId', label: 'Account', dataType: 'REFERENCE', lookupTo: 'Account', readOnly: true, createBlueprint: 'x', createLabel: 'New Account' });
+        computeForm.mockResolvedValue(offered);
+        const element = await mount();
+
+        expect(element.shadowRoot.querySelector('[data-id="make"]')).toBeNull();
+    });
+
+    it('hands over what was entered, and a name for it, without saving', async () => {
+        const element = await mount();
+        expect(element.collect()).toEqual({ values: {}, summary: 'New Deal' });
+
+        change(inputFor(element, 'Name'), { value: 'Ada' });
+        await flush();
+        expect(element.collect()).toEqual({ values: { Name: 'Ada' }, summary: 'Ada' });
+        expect(computeForm).not.toHaveBeenCalledWith(expect.objectContaining({ save: true }));
+
+        inputFor(element, 'Name').reportValidity = () => false;
+        expect(element.collect()).toBeUndefined();
+    });
+
     it('tells its host when the user backs out', async () => {
         const element = await mount();
         const cancelled = jest.fn();

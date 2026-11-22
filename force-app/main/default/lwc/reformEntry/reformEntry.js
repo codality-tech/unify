@@ -30,6 +30,11 @@ const INPUT_SELECTOR = 'lightning-input, lightning-textarea, lightning-combobox,
  * blueprint's rules or text depend on (a "reactive" field) changes. Nothing is saved until Save.
  *
  * Fires `saved` with { recordId } after a save, and `cancel` when the user backs out.
+ *
+ * A lookup whose blueprint element can make its record offers "New ..." beside the picker. That
+ * fires `createrecord` with { field, blueprint, label } for the host to collect the new record's
+ * values in a form of its own; the host hands them back with useNewRecord(), and they are saved with
+ * this record. Nothing is saved before this form's Save.
  */
 export default class ReformEntry extends LightningElement {
     /** The blueprint: a definition, { name } of a stored one, or both. */
@@ -41,8 +46,11 @@ export default class ReformEntry extends LightningElement {
     busy = false;
     failure;
 
-    // What the user has changed since the form was loaded or saved, by field API name.
+    // What the user has changed since the form was loaded or saved, by field API name. A lookup
+    // whose record is to be made holds { create: { ...its values } }.
     changes = {};
+    // What to call each record to be made, by its lookup's API name.
+    made = {};
     loadedRecordId;
     recomputeTimer;
     // Each request gets a number; an answer to anything but the latest is dropped.
@@ -76,15 +84,37 @@ export default class ReformEntry extends LightningElement {
     /** Saves, if every input is valid. Resolves to the saved record's Id, or undefined. */
     @api
     async save() {
-        const inputs = [...this.template.querySelectorAll(INPUT_SELECTOR)];
-        // Every input is asked, so each shows its own message; only a plain false counts as invalid.
-        const valid = inputs.reduce((soFar, input) => input.reportValidity() !== false && soFar, true);
-        if (!valid) {
+        if (!this.reportValidity()) {
             return undefined;
         }
         window.clearTimeout(this.recomputeTimer);
         const saved = await this.compute(true);
         return saved ? saved.recordId : undefined;
+    }
+
+    /**
+     * The values entered so far and a short name for them, if every input is valid: for a host that
+     * collects a record to be made from another form's lookup. Saves nothing.
+     */
+    @api
+    collect() {
+        if (!this.reportValidity()) {
+            return undefined;
+        }
+        return { values: { ...this.changes }, summary: this.summary };
+    }
+
+    /** Makes the record a lookup points at from these values, when this form is saved. */
+    @api
+    useNewRecord(field, values, summary) {
+        this.changes = { ...this.changes, [field]: { create: { ...values } } };
+        this.made = { ...this.made, [field]: summary };
+    }
+
+    reportValidity() {
+        const inputs = [...this.template.querySelectorAll(INPUT_SELECTOR)];
+        // Every input is asked, so each shows its own message; only a plain false counts as invalid.
+        return inputs.reduce((soFar, input) => input.reportValidity() !== false && soFar, true);
     }
 
     async compute(save) {
@@ -103,6 +133,7 @@ export default class ReformEntry extends LightningElement {
             this.view = view;
             if (save) {
                 this.changes = {};
+                this.made = {};
                 this.loadedRecordId = view.recordId;
                 this.dispatchEvent(new ShowToastEvent({ title: `${view.label} saved`, variant: 'success' }));
                 this.dispatchEvent(new CustomEvent('saved', { detail: { recordId: view.recordId } }));
@@ -128,6 +159,36 @@ export default class ReformEntry extends LightningElement {
             // eslint-disable-next-line @lwc/lwc/no-async-operation
             this.recomputeTimer = window.setTimeout(() => this.compute(false), RECOMPUTE_DELAY);
         }
+    }
+
+    handleMake(event) {
+        const field = event.target.dataset.field;
+        const part = this.view.parts.find((each) => each.name === field);
+        this.dispatchEvent(
+            new CustomEvent('createrecord', {
+                detail: { field, blueprint: { name: part.createBlueprint }, label: part.createLabel }
+            })
+        );
+    }
+
+    handleRemoveMade(event) {
+        const field = event.target.dataset.field;
+        const changes = { ...this.changes };
+        delete changes[field];
+        const made = { ...this.made };
+        delete made[field];
+        this.changes = changes;
+        this.made = made;
+    }
+
+    // A short name for what has been entered: the first two text values on show, such as a first
+    // and last name.
+    get summary() {
+        const texts = this.parts
+            .filter((part) => part.isInput && part.inputType === 'text' && part.value)
+            .slice(0, 2)
+            .map((part) => part.value);
+        return texts.length ? texts.join(' ') : `New ${this.view ? this.view.label : 'record'}`;
     }
 
     handleSave() {
@@ -173,11 +234,11 @@ export default class ReformEntry extends LightningElement {
         return this.view.parts
             .map((part, index) => ({ part, index }))
             .filter(({ part }) => part.visible)
-            .map(({ part, index }) => drawable(part, index, this.changes));
+            .map(({ part, index }) => drawable(part, index, this.changes, this.made));
     }
 }
 
-function drawable(part, index, changes) {
+function drawable(part, index, changes, made) {
     const type = part.dataType;
     const isField = part.kind === 'FIELD';
     // What the user typed stays on screen while a recompute is in flight.
@@ -187,6 +248,7 @@ function drawable(part, index, changes) {
     const isMultiPicklist = isField && type === 'MULTIPICKLIST';
     const isLongText = isField && type === 'TEXTAREA';
     const isCheckbox = isField && type === 'BOOLEAN';
+    const isMade = isLookup && part.name in made;
     return {
         key: `${index}-${part.name || part.kind}`,
         cellClass: `slds-col slds-size_1-of-1 slds-medium-size_${part.width}-of-12 slds-p-bottom_small`,
@@ -200,8 +262,12 @@ function drawable(part, index, changes) {
         value: value === null || value === undefined ? '' : value,
         checked: value === true,
         selected: typeof value === 'string' && value ? value.split(';') : [],
-        lookupValue: value || undefined,
+        lookupValue: typeof value === 'string' && value ? value : undefined,
         lookupTo: part.lookupTo,
+        isMade,
+        madeSummary: isMade ? made[part.name] : undefined,
+        canMake: isLookup && !!part.createBlueprint && !part.readOnly,
+        createLabel: part.createLabel,
         options: part.options || [],
         kind: type,
         inputType: INPUT_TYPES[type] || 'text',

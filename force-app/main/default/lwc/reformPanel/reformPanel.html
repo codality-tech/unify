@@ -5,13 +5,32 @@
         </div>
         <div class="slds-card__body slds-card__body_inner">
             <template lwc:if={configured}>
-                <c-reform-entry
-                    lwc:if={entering}
-                    blueprint={definition}
-                    record-id={enteringId}
-                    onsaved={handleDone}
-                    oncancel={handleDone}
-                ></c-reform-entry>
+                <template lwc:if={entering}>
+                    <!-- Hidden, not removed, while a record for one of its lookups is entered, so what was typed stays. -->
+                    <div class={entryClass}>
+                        <c-reform-entry
+                            blueprint={definition}
+                            record-id={enteringId}
+                            onsaved={handleDone}
+                            oncancel={handleDone}
+                            oncreaterecord={handleMake}
+                            data-id="entry"
+                        ></c-reform-entry>
+                    </div>
+                    <template lwc:if={making}>
+                        <c-reform-entry blueprint={making.blueprint} hide-actions data-id="made-entry"></c-reform-entry>
+                        <div class="slds-m-top_small slds-text-align_right">
+                            <lightning-button label="Back" onclick={handleMakeBack} data-id="made-back"></lightning-button>
+                            <lightning-button
+                                label={making.useLabel}
+                                variant="brand"
+                                class="slds-m-left_x-small"
+                                onclick={handleMakeUse}
+                                data-id="made-use"
+                            ></lightning-button>
+                        </div>
+                    </template>
+                </template>
                 <c-reform-list
                     lwc:else
                     blueprint={definition}

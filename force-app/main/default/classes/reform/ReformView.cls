@@ -42,6 +42,15 @@ public class ReformView {
     /** For a lookup: the API name of the object it points at (the first, when it can point at several). */
     @AuraEnabled
     public String lookupTo;
+    /**
+     * For a lookup that can make its record instead: the stored blueprint of that record, and what
+     * to call the offer ("New Person"). The record is sent with this form's values under the
+     * lookup's name, as { "create": { ...its values } }, and saved with this record.
+     */
+    @AuraEnabled
+    public String createBlueprint;
+    @AuraEnabled
+    public String createLabel;
 
     /** Heading or rich text, with its merge fields filled in. */
     @AuraEnabled

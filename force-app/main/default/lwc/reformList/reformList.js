@@ -1,4 +1,5 @@
 import { LightningElement, api } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
 import listPage from '@salesforce/apex/ReformApi.table';
@@ -23,10 +24,11 @@ const DATETIME_FORMAT = { year: 'numeric', month: 'short', day: '2-digit', hour:
  * A table drawn from a Reform blueprint: its columns, the records its filters allow, a page at a
  * time. Offers New, Edit and Delete only where the blueprint and the user's permissions allow them.
  *
+ * Each row can be opened on its record page, so a list on a record page leads down to the next one.
  * Fires `new` when the user asks for a new record and `edit` with { recordId } for an existing one.
  * Deleting is done here, after the user confirms.
  */
-export default class ReformList extends LightningElement {
+export default class ReformList extends NavigationMixin(LightningElement) {
     /** The blueprint: a definition, { name } of a stored one, or both. */
     @api blueprint;
     /** Records per page. */
@@ -81,16 +83,14 @@ export default class ReformList extends LightningElement {
             }
             return definition;
         });
-        const actions = [];
+        const actions = [{ label: 'Open', name: 'open' }];
         if (this.view && this.view.canEdit) {
             actions.push({ label: 'Edit', name: 'edit' });
         }
         if (this.view && this.view.canDelete) {
             actions.push({ label: 'Delete', name: 'delete' });
         }
-        if (actions.length) {
-            drawn.push({ type: 'action', typeAttributes: { rowActions: actions } });
-        }
+        drawn.push({ type: 'action', typeAttributes: { rowActions: actions } });
         return drawn;
     }
 
@@ -176,7 +176,9 @@ export default class ReformList extends LightningElement {
 
     async handleRowAction(event) {
         const { action, row } = event.detail;
-        if (action.name === 'edit') {
+        if (action.name === 'open') {
+            this[NavigationMixin.Navigate]({ type: 'standard__recordPage', attributes: { recordId: row.Id, actionName: 'view' } });
+        } else if (action.name === 'edit') {
             this.dispatchEvent(new CustomEvent('edit', { detail: { recordId: row.Id } }));
         } else if (action.name === 'delete') {
             await this.remove(row.Id);
