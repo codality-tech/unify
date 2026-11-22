@@ -117,6 +117,8 @@ A form is computed from the values a component holds and is never written until 
 
 ### Access
 
+A user of a Reform form or table needs access to the Apex class `ReformApi` (`unif__ReformApi` in a subscriber org): grant it in the org's own permission set, as the Reform Showcase permission set does for the showcase. Without it, the panel says "You do not have access to the Apex class named 'ReformApi'".
+
 Reads and writes both run as the user. Reads apply sharing and field-level security, and a field or column the user cannot see is left out. Writes go through the framework's unit of work in user mode, so the platform refuses whatever the user may not do. Before that the engine checks the user's object and field permissions and their access to the record, so a refusal says what was refused, and it writes only the fields the blueprint names. A blueprint can also set `createable`, `updateable` or `deleteable` to `false`.
 
 - **Permissions.** A user who cannot read the object is refused outright. A field the user cannot see is left out of tables and forms, and a rule or merge field that reads it comes out as if the field were empty. A field the user can see but not change is drawn read-only, and a value sent for it is ignored. `ReformAccessTest` runs each of these as a user with a minimal profile.
